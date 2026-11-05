@@ -26,7 +26,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import static com.lablr.backend.support.JsonHelper.fromSingleQuotes;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -104,8 +103,14 @@ class LabelControllerTests {
 			mvc.perform(post(LABELS).with(oidcLogin())
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(fromSingleQuotes(
-						"{'name':'Work','labelListVisibility':'labelShow','messageListVisibility':'show','color':{'textColor':'#000000','backgroundColor':'#ffffff'}}")))
+				.content("""
+						{
+						  "name": "Work",
+						  "labelListVisibility": "labelShow",
+						  "messageListVisibility": "show",
+						  "color": { "textColor": "#000000", "backgroundColor": "#ffffff" }
+						}
+						"""))
 				.andExpect(status().isCreated())
 				.andExpect(header().string("Location", "http://localhost/api/labels/TestLabel"))
 				.andExpect(jsonPath("$.id").value("TestLabel"))
@@ -115,16 +120,26 @@ class LabelControllerTests {
 		@ParameterizedTest
 		@ValueSource(strings = {
 				"{}",
-				"{'name':' '}",
-				"{'name':'Work','labelListVisibility':'sometimes'}",
-				"{'name':'Work','messageListVisibility':'maybe'}",
-				"{'name':'Work','color':{'textColor':'red','backgroundColor':'#ffffff'}}",
-				"{'name':'Work','color':{'textColor':'#000000'}}" })
+				"""
+				{ "name": " " }
+				""",
+				"""
+				{ "name": "Work", "labelListVisibility": "sometimes" }
+				""",
+				"""
+				{ "name": "Work", "messageListVisibility": "maybe" }
+				""",
+				"""
+				{ "name": "Work", "color": { "textColor": "red", "backgroundColor": "#ffffff" } }
+				""",
+				"""
+				{ "name": "Work", "color": { "textColor": "#000000" } }
+				""" })
 		void rejectsInvalidBody(String body) throws Exception {
 			mvc.perform(post(LABELS).with(oidcLogin())
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(fromSingleQuotes(body)))
+				.content(body))
 				.andExpect(status().isBadRequest());
 
 			then(labelService).shouldHaveNoInteractions();
@@ -143,7 +158,9 @@ class LabelControllerTests {
 			mvc.perform(patch(LABEL).with(oidcLogin())
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(fromSingleQuotes("{'name':'Renamed'}")))
+				.content("""
+						{ "name": "Renamed" }
+						"""))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value("TestLabel"))
 				.andExpect(jsonPath("$.name").value("Renamed"));
@@ -151,17 +168,29 @@ class LabelControllerTests {
 
 		@ParameterizedTest
 		@ValueSource(strings = {
-				"{'name':''}",
-				"{'name':' '}",
-				"{'labelListVisibility':'sometimes'}",
-				"{'messageListVisibility':'maybe'}",
-				"{'color':{'textColor':'red','backgroundColor':'#ffffff'}}",
-				"{'color':{'textColor':'#000000'}}" })
+				"""
+				{ "name": "" }
+				""",
+				"""
+				{ "name": " " }
+				""",
+				"""
+				{ "labelListVisibility": "sometimes" }
+				""",
+				"""
+				{ "messageListVisibility": "maybe" }
+				""",
+				"""
+				{ "color": { "textColor": "red", "backgroundColor": "#ffffff" } }
+				""",
+				"""
+				{ "color": { "textColor": "#000000" } }
+				""" })
 		void rejectsInvalidBody(String body) throws Exception {
 			mvc.perform(patch(LABEL).with(oidcLogin())
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(fromSingleQuotes(body)))
+				.content(body))
 				.andExpect(status().isBadRequest());
 
 			then(labelService).shouldHaveNoInteractions();

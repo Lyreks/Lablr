@@ -18,7 +18,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
-import static com.lablr.backend.support.JsonHelper.fromSingleQuotes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -40,8 +39,20 @@ class LabelServiceTests {
 
 		@Test
 		void mapsGmailLabels() throws Exception {
-			gmail.respondWith(200, fromSingleQuotes(
-					"{'labels':[{'id':'TestLabel','name':'Work','type':'user','labelListVisibility':'labelShow','messageListVisibility':'show','color':{'textColor':'#000000','backgroundColor':'#ffffff'}}]}"));
+			gmail.respondWith(200, """
+					{
+					  "labels": [
+					    {
+					      "id": "TestLabel",
+					      "name": "Work",
+					      "type": "user",
+					      "labelListVisibility": "labelShow",
+					      "messageListVisibility": "show",
+					      "color": { "textColor": "#000000", "backgroundColor": "#ffffff" }
+					    }
+					  ]
+					}
+					""");
 
 			assertThat(labelService.list(token)).containsExactly(new LabelResponse("TestLabel", "Work", "user",
 					"labelShow", "show", new LabelColorDto("#000000", "#ffffff"), null, null));
@@ -63,8 +74,9 @@ class LabelServiceTests {
 
 		@Test
 		void mapsMessageCounts() throws Exception {
-			gmail.respondWith(200,
-					fromSingleQuotes("{'id':'TestLabel','name':'Work','messagesTotal':12,'messagesUnread':3}"));
+			gmail.respondWith(200, """
+					{ "id": "TestLabel", "name": "Work", "messagesTotal": 12, "messagesUnread": 3 }
+					""");
 
 			LabelResponse label = labelService.get(token, "TestLabel");
 
@@ -81,27 +93,36 @@ class LabelServiceTests {
 
 		@Test
 		void sendsLabelToGmail() throws Exception {
-			gmail.respondWith(200, fromSingleQuotes("{'id':'TestLabel','name':'Work'}"));
+			gmail.respondWith(200, """
+					{ "id": "TestLabel", "name": "Work" }
+					""");
 
 			labelService.create(token, new CreateLabelRequest("Work", "labelShow", "show",
 					new LabelColorDto("#000000", "#ffffff")));
 
 			assertThat(gmail.method).isEqualTo("POST");
 			assertThat(gmail.request.getUrl()).isEqualTo(LABELS_URL);
-			JSONAssert.assertEquals(fromSingleQuotes(
-					"{'name':'Work','labelListVisibility':'labelShow','messageListVisibility':'show','color':{'textColor':'#000000','backgroundColor':'#ffffff'}}"),
-					gmail.request.getContentAsString(), true);
+			JSONAssert.assertEquals("""
+					{
+					  "name": "Work",
+					  "labelListVisibility": "labelShow",
+					  "messageListVisibility": "show",
+					  "color": { "textColor": "#000000", "backgroundColor": "#ffffff" }
+					}
+					""", gmail.request.getContentAsString(), true);
 		}
 
 		@Test
 		void defaultsVisibilityWhenOmitted() throws Exception {
-			gmail.respondWith(200, fromSingleQuotes("{'id':'TestLabel','name':'Work'}"));
+			gmail.respondWith(200, """
+					{ "id": "TestLabel", "name": "Work" }
+					""");
 
 			labelService.create(token, new CreateLabelRequest("Work", null, null, null));
 
-			JSONAssert.assertEquals(
-					fromSingleQuotes("{'name':'Work','labelListVisibility':'labelShow','messageListVisibility':'show'}"),
-					gmail.request.getContentAsString(), true);
+			JSONAssert.assertEquals("""
+					{ "name": "Work", "labelListVisibility": "labelShow", "messageListVisibility": "show" }
+					""", gmail.request.getContentAsString(), true);
 		}
 
 	}
@@ -111,14 +132,18 @@ class LabelServiceTests {
 
 		@Test
 		void sendsOnlyProvidedFieldsAsPatch() throws Exception {
-			gmail.respondWith(200, fromSingleQuotes("{'id':'TestLabel','name':'Renamed'}"));
+			gmail.respondWith(200, """
+					{ "id": "TestLabel", "name": "Renamed" }
+					""");
 
 			labelService.update(token, "TestLabel", new UpdateLabelRequest("Renamed", null, null, null));
 
 			assertThat(gmail.method).isEqualTo("POST");
 			assertThat(gmail.request.getFirstHeaderValue("X-HTTP-Method-Override")).isEqualTo("PATCH");
 			assertThat(gmail.request.getUrl()).isEqualTo(LABEL_URL);
-			JSONAssert.assertEquals(fromSingleQuotes("{'name':'Renamed'}"), gmail.request.getContentAsString(), true);
+			JSONAssert.assertEquals("""
+					{ "name": "Renamed" }
+					""", gmail.request.getContentAsString(), true);
 		}
 
 	}
@@ -152,8 +177,9 @@ class LabelServiceTests {
 
 		@Test
 		void propagatesGmailErrors() {
-			gmail.respondWith(409,
-					fromSingleQuotes("{'error':{'code':409,'message':'Label name exists or conflicts'}}"));
+			gmail.respondWith(409, """
+					{ "error": { "code": 409, "message": "Label name exists or conflicts" } }
+					""");
 
 			assertThatExceptionOfType(GoogleJsonResponseException.class)
 				.isThrownBy(() -> labelService.create(token, new CreateLabelRequest("Work", null, null, null)))
