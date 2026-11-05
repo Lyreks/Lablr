@@ -26,6 +26,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import static com.lablr.backend.support.JsonHelper.fromSingleQuotes;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,10 +49,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SecurityConfiguration.class)
 class LabelControllerTests {
 
-	private static final String LABEL = "/api/labels/TestLabel";
 	private static final String LABELS = "/api/labels";
+	private static final String LABEL = LABELS + "/TestLabel";
 	private static final LabelResponse WORK = new LabelResponse("TestLabel", "Work", "user", "labelShow", "show", null,
 			null, null);
+	private static final LabelResponse RENAMED = new LabelResponse("TestLabel", "Renamed", "user", "labelShow", "show",
+			null, null, null);
 
 	@Autowired
 	private MockMvc mvc;
@@ -98,8 +101,11 @@ class LabelControllerTests {
 					new LabelColorDto("#000000", "#ffffff"));
 			given(labelService.create(any(), eq(expected))).willReturn(WORK);
 
-			mvc.perform(post(LABELS).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json(
-					"{'name':'Work','labelListVisibility':'labelShow','messageListVisibility':'show','color':{'textColor':'#000000','backgroundColor':'#ffffff'}}")))
+			mvc.perform(post(LABELS).with(oidcLogin())
+				.with(csrf())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(fromSingleQuotes(
+						"{'name':'Work','labelListVisibility':'labelShow','messageListVisibility':'show','color':{'textColor':'#000000','backgroundColor':'#ffffff'}}")))
 				.andExpect(status().isCreated())
 				.andExpect(header().string("Location", "http://localhost/api/labels/TestLabel"))
 				.andExpect(jsonPath("$.id").value("TestLabel"))
@@ -115,7 +121,10 @@ class LabelControllerTests {
 				"{'name':'Work','color':{'textColor':'red','backgroundColor':'#ffffff'}}",
 				"{'name':'Work','color':{'textColor':'#000000'}}" })
 		void rejectsInvalidBody(String body) throws Exception {
-			mvc.perform(post(LABELS).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json(body)))
+			mvc.perform(post(LABELS).with(oidcLogin())
+				.with(csrf())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(fromSingleQuotes(body)))
 				.andExpect(status().isBadRequest());
 
 			then(labelService).shouldHaveNoInteractions();
@@ -128,14 +137,16 @@ class LabelControllerTests {
 
 		@Test
 		void returnsUpdatedLabel() throws Exception {
-			UpdateLabelRequest expected = new UpdateLabelRequest("Work", null, null, null);
-			given(labelService.update(any(), eq("TestLabel"), eq(expected))).willReturn(WORK);
+			UpdateLabelRequest expected = new UpdateLabelRequest("Renamed", null, null, null);
+			given(labelService.update(any(), eq("TestLabel"), eq(expected))).willReturn(RENAMED);
 
-			mvc.perform(patch(LABEL).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json(
-					"{'name':'Work'}")))
+			mvc.perform(patch(LABEL).with(oidcLogin())
+				.with(csrf())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(fromSingleQuotes("{'name':'Renamed'}")))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value("TestLabel"))
-				.andExpect(jsonPath("$.name").value("Work"));
+				.andExpect(jsonPath("$.name").value("Renamed"));
 		}
 
 		@ParameterizedTest
@@ -147,7 +158,10 @@ class LabelControllerTests {
 				"{'color':{'textColor':'red','backgroundColor':'#ffffff'}}",
 				"{'color':{'textColor':'#000000'}}" })
 		void rejectsInvalidBody(String body) throws Exception {
-			mvc.perform(patch(LABEL).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json(body)))
+			mvc.perform(patch(LABEL).with(oidcLogin())
+				.with(csrf())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(fromSingleQuotes(body)))
 				.andExpect(status().isBadRequest());
 
 			then(labelService).shouldHaveNoInteractions();
@@ -226,7 +240,8 @@ class LabelControllerTests {
 		@ParameterizedTest
 		@ValueSource(ints = { 400, 403, 404, 409, 429 })
 		void keepsGmailStatusAndMessage(int gmailStatus) throws Exception {
-			given(labelService.get(any(), eq("TestLabel"))).willThrow(gmailError(gmailStatus, "Gmail error", "Gmail says no"));
+			given(labelService.get(any(), eq("TestLabel")))
+				.willThrow(gmailError(gmailStatus, "Gmail error", "Gmail says no"));
 
 			mvc.perform(get(LABEL).with(oidcLogin()))
 				.andExpect(status().is(gmailStatus))
@@ -274,10 +289,6 @@ class LabelControllerTests {
 		GoogleJsonError details = new GoogleJsonError();
 		details.setMessage(detail);
 		return new GoogleJsonResponseException(response, details);
-	}
-
-	private static String json(String singleQuoted) {
-		return singleQuoted.replace('\'', '"');
 	}
 
 }
