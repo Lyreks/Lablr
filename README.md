@@ -10,6 +10,8 @@
 
 ## Run everything with Docker
 
+Copy `.env.example` to `.env` and fill in a Google OAuth client ID and secret (Web application, redirect URI `http://localhost:8080/login/oauth2/code/google`, `gmail.labels` scope).
+
 ```bash
 docker compose up --build
 ```
