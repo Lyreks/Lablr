@@ -3,7 +3,6 @@ package com.lablr.backend.gmail;
 import java.util.Date;
 
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
@@ -17,7 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class GmailClientFactory {
 
-	private final HttpTransport transport = new NetHttpTransport();
+	private final HttpTransport transport;
+
+	public GmailClientFactory(HttpTransport transport) {
+		this.transport = transport;
+	}
 
 	public Gmail forUser(OAuth2AccessToken token) {
 		if (!token.getScopes().contains(GmailScopes.GMAIL_LABELS)) {

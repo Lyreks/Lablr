@@ -1,5 +1,7 @@
 package com.lablr.backend.label;
 
+import java.util.Objects;
+
 import com.google.api.services.gmail.model.Label;
 
 import jakarta.validation.Valid;
@@ -14,8 +16,8 @@ public record CreateLabelRequest(
 
 	Label toGmail() {
 		return new Label().setName(name)
-			.setLabelListVisibility(labelListVisibility)
-			.setMessageListVisibility(messageListVisibility)
+			.setLabelListVisibility(Objects.requireNonNullElse(labelListVisibility, "labelShow"))
+			.setMessageListVisibility(Objects.requireNonNullElse(messageListVisibility, "show"))
 			.setColor((color != null) ? color.toGmail() : null);
 	}
 

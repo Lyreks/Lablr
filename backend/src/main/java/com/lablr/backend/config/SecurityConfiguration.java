@@ -27,7 +27,7 @@ public class SecurityConfiguration {
 				.requestMatchers("/actuator/health", "/error").permitAll()
 				.anyRequest().authenticated())
 			.oauth2Login(login -> login.defaultSuccessUrl(frontendUrl, true))
-			.logout(logout -> logout.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler()))
+			.logout(logout -> logout.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT)))
 			.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
 					new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
 					PathPatternRequestMatcher.withDefaults().matcher("/api/**")))
