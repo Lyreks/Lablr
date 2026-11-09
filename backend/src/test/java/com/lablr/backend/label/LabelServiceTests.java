@@ -273,6 +273,17 @@ class LabelServiceTests {
 				});
 		}
 
+		@Test
+		void propagatesRejectedTokenAsGmailError() {
+			gmail.respondWith(401, """
+					{ "error": { "code": 401, "message": "Request had invalid authentication credentials." } }
+					""");
+
+			assertThatExceptionOfType(GoogleJsonResponseException.class).isThrownBy(() -> labelService.list(token))
+				.satisfies((ex) -> assertThat(ex.getStatusCode()).isEqualTo(401));
+			assertThat(gmail.requests).hasSize(1);
+		}
+
 	}
 
 	private static final class RecordingTransport extends MockHttpTransport {

@@ -2,6 +2,7 @@ package com.lablr.backend.web;
 
 import java.io.IOException;
 
+import com.lablr.backend.gmail.ExpiredGmailTokenException;
 import com.lablr.backend.gmail.GmailErrors;
 import com.lablr.backend.gmail.MissingGmailScopeException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,6 +56,12 @@ public class ApiExceptionHandler {
 		logger.info("Gmail labels scope not granted for {}", describe(request));
 		return signInAgain(HttpStatus.FORBIDDEN,
 				"Gmail label access was not granted. Sign in again and allow access to your email labels.");
+	}
+
+	@ExceptionHandler(ExpiredGmailTokenException.class)
+	ProblemDetail handleExpiredToken(HttpServletRequest request) {
+		logger.info("Google access token expired for {}", describe(request));
+		return signInAgain(HttpStatus.UNAUTHORIZED, "Your Google sign-in has expired. Sign in again to continue.");
 	}
 
 	// Spring would redirect to Google here, which fetch can't follow

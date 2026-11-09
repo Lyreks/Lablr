@@ -9,6 +9,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponseException;
 import com.lablr.backend.config.SecurityConfiguration;
+import com.lablr.backend.gmail.ExpiredGmailTokenException;
 import com.lablr.backend.gmail.MissingGmailScopeException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -327,6 +328,15 @@ class LabelControllerTests {
 		@Test
 		void asksToSignInAgainWhenGmailRejectsToken() throws Exception {
 			given(labelService.list(any())).willThrow(gmailError(401, "Unauthorized", "Invalid Credentials"));
+
+			mvc.perform(get(LABELS).with(oidcLogin()))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.loginUrl").value("/oauth2/authorization/google"));
+		}
+
+		@Test
+		void asksToSignInAgainWhenTokenExpired() throws Exception {
+			given(labelService.list(any())).willThrow(new ExpiredGmailTokenException());
 
 			mvc.perform(get(LABELS).with(oidcLogin()))
 				.andExpect(status().isUnauthorized())
