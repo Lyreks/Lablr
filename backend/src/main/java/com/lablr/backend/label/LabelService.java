@@ -38,6 +38,15 @@ public class LabelService {
 		return LabelResponse.from(labels(token).patch(CURRENT_USER, id, request.toGmail()).execute());
 	}
 
+	public LabelResponse removeColor(OAuth2AccessToken token, String id) throws IOException {
+		Label current = labels(token).get(CURRENT_USER, id).execute();
+		Label withoutColor = new Label().setId(current.getId())
+			.setName(current.getName())
+			.setLabelListVisibility(current.getLabelListVisibility())
+			.setMessageListVisibility(current.getMessageListVisibility());
+		return LabelResponse.from(labels(token).update(CURRENT_USER, id, withoutColor).execute());
+	}
+
 	public void delete(OAuth2AccessToken token, String id) throws IOException {
 		labels(token).delete(CURRENT_USER, id).execute();
 	}

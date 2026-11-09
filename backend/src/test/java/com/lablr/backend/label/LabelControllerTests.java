@@ -199,6 +199,21 @@ class LabelControllerTests {
 	}
 
 	@Nested
+	class RemoveColor {
+
+		@Test
+		void returnsLabelWithoutColor() throws Exception {
+			given(labelService.removeColor(any(), eq("TestLabel"))).willReturn(WORK);
+
+			mvc.perform(delete(LABEL + "/color").with(oidcLogin()).with(csrf()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value("TestLabel"))
+				.andExpect(jsonPath("$.color").doesNotExist());
+		}
+
+	}
+
+	@Nested
 	class DeleteLabel {
 
 		@Test
@@ -220,7 +235,8 @@ class LabelControllerTests {
 					arguments(HttpMethod.GET, LABEL),
 					arguments(HttpMethod.POST, LABELS),
 					arguments(HttpMethod.PATCH, LABEL),
-					arguments(HttpMethod.DELETE, LABEL));
+					arguments(HttpMethod.DELETE, LABEL),
+					arguments(HttpMethod.DELETE, LABEL + "/color"));
 		}
 
 		static Stream<Arguments> changingEndpoints() {

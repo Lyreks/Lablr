@@ -1,6 +1,9 @@
 package com.lablr.backend.label;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -149,6 +152,39 @@ class LabelServiceTests {
 	}
 
 	@Nested
+	class RemoveColor {
+
+		@Test
+		void replacesLabelWithoutColor() throws Exception {
+			gmail.respondWith(200, """
+					{
+					  "id": "TestLabel",
+					  "name": "Work",
+					  "type": "user",
+					  "labelListVisibility": "labelShowIfUnread",
+					  "messageListVisibility": "hide",
+					  "color": { "textColor": "#000000", "backgroundColor": "#ffffff" },
+					  "messagesTotal": 12
+					}
+					""");
+
+			labelService.removeColor(token, "TestLabel");
+
+			assertThat(gmail.method).isEqualTo("PUT");
+			assertThat(gmail.request.getUrl()).isEqualTo(LABEL_URL);
+			JSONAssert.assertEquals("""
+					{
+					  "id": "TestLabel",
+					  "name": "Work",
+					  "labelListVisibility": "labelShowIfUnread",
+					  "messageListVisibility": "hide"
+					}
+					""", gmail.request.getContentAsString(), true);
+		}
+
+	}
+
+	@Nested
 	class DeleteLabel {
 
 		@Test
@@ -195,16 +231,35 @@ class LabelServiceTests {
 
 		private final NetHttpTransport production = new NetHttpTransport();
 
-		private MockLowLevelHttpResponse response;
+		private final List<Response> responses = new ArrayList<>();
 
+		private final List<Request> requests = new ArrayList<>();
+
+		// Most recent request.
 		private String method;
 
 		private MockLowLevelHttpRequest request;
 
+		private record Response(int status, String body) {
+		}
+
+		record Request(String method, MockLowLevelHttpRequest request) {
+
+			String body() throws IOException {
+				return request.getContentAsString();
+			}
+
+		}
+
+		// Replaces any queued responses.
 		void respondWith(int status, String body) {
-			response = new MockLowLevelHttpResponse().setStatusCode(status)
-				.setContentType(Json.MEDIA_TYPE)
-				.setContent(body);
+			responses.clear();
+			responses.add(new Response(status, body));
+		}
+
+		// Queued in order; the last one repeats.
+		void thenRespondWith(int status, String body) {
+			responses.add(new Response(status, body));
 		}
 
 		@Override
@@ -214,8 +269,14 @@ class LabelServiceTests {
 
 		@Override
 		public LowLevelHttpRequest buildRequest(String method, String url) {
+			Response response = responses.get(Math.min(requests.size(), responses.size() - 1));
+			// Response bodies can only be read once.
 			this.method = method;
-			this.request = new MockLowLevelHttpRequest(url).setResponse(response);
+			this.request = new MockLowLevelHttpRequest(url).setResponse(new MockLowLevelHttpResponse()
+				.setStatusCode(response.status())
+				.setContentType(Json.MEDIA_TYPE)
+				.setContent(response.body()));
+			requests.add(new Request(method, request));
 			return request;
 		}
 

@@ -60,6 +60,12 @@ public class LabelController {
 		return labelService.update(client.getAccessToken(), id, request);
 	}
 
+	@DeleteMapping("/{id}/color")
+	public LabelResponse removeColor(@RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+			@PathVariable String id) throws IOException {
+		return labelService.removeColor(client.getAccessToken(), id);
+	}
+
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client, @PathVariable String id)
