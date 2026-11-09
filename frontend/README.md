@@ -13,7 +13,7 @@ npm run dev        # http://localhost:3000
 
 Vite proxies `/api`, `/oauth2`, `/login/oauth2` and `/logout` to the backend, so the session cookie is first-party and there's no CORS.
 
-It's an SPA (`ssr: false`), since all data loads in the browser anyway. Under Docker the image is just Caddy serving `build/client` and doing the same proxying (see `Caddyfile`).
+It's an SPA (`ssr: false`), since all data loads in the browser anyway. The root `Dockerfile` builds it into the backend's static resources, so in Docker and on Cloud Run Spring Boot serves the app and the API from one origin.
 
 | Script              | Does                       |
 |---------------------|----------------------------|

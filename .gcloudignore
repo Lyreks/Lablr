@@ -1,0 +1,10 @@
+# Same as .dockerignore, for gcloud run deploy --source
+.git
+.claude
+.env
+.env.*
+docs
+**/node_modules
+**/target
+frontend/build
+frontend/.react-router

@@ -20,10 +20,10 @@ With sample labels.
 |----------------------|---------------------------------------------------------|
 | `frontend/`          | React Router (TypeScript, Vite) SPA                     |
 | `backend/`           | Java 25 Spring Boot (Maven) REST API, port 8080         |
-| `docker-compose.yml` | Runs both together for local development                |
-| `frontend/Caddyfile` | Serves the SPA and proxies the backend under Docker     |
+| `Dockerfile`         | One image: the backend serving the built frontend       |
+| `docker-compose.yml` | Runs that image locally                                 |
 
-The browser only ever talks to one origin. A proxy sends `/api/*`, `/oauth2/*`, `/login/oauth2/*` and `/logout` to the backend and everything else to the frontend, so the session cookie is first-party and there's no CORS. That proxy is Vite's dev server when running directly, and Caddy under Docker.
+The browser only ever talks to one origin. In development Vite proxies `/api/*`, `/oauth2/*`, `/login/oauth2/*` and `/logout` to the backend. In Docker and on Cloud Run there's one image, where Spring Boot serves the built frontend itself. Either way the session cookie is first-party and there's no CORS.
 
 ## API
 
@@ -54,7 +54,7 @@ docker compose up --build
 ```
 
 - App: http://localhost:3000
-- Backend health: http://localhost:8080/actuator/health
+- Health: http://localhost:3000/actuator/health
 
 ## Run each part directly
 

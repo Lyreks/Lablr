@@ -1,7 +1,7 @@
 import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 
-// Proxy the backend so everything is same-origin (Caddy does this under Docker).
+// Proxy the backend so everything is same-origin, like the Docker image where Spring Boot serves the app.
 // changeOrigin must stay off so the Host header, and the OAuth redirect URI, stay on this server.
 // The string shorthand turns it on.
 const backend = { target: "http://localhost:8080", changeOrigin: false };

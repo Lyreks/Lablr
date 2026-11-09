@@ -22,9 +22,10 @@ public class SecurityConfiguration {
 	SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clients)
 			throws Exception {
 		http
+			// Pages and assets are public; the app asks /api/me and shows its own sign-in screen
 			.authorizeHttpRequests(requests -> requests
-				.requestMatchers("/actuator/health", "/error").permitAll()
-				.anyRequest().authenticated())
+				.requestMatchers("/api/**").authenticated()
+				.anyRequest().permitAll())
 			.oauth2Login(login -> login
 				.authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(
 						LoginReturnTo.remembering(new DefaultOAuth2AuthorizationRequestResolver(clients,

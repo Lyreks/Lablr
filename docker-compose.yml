@@ -1,21 +1,12 @@
 services:
-  backend:
-    build: ./backend
+  app:
+    build: .
     env_file: .env
     ports:
-      - "8080:8080"
+      - "3000:8080"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 3s
       retries: 10
       start_period: 20s
-
-  # The app on :3000 (see frontend/Caddyfile). Waits for the backend so the first request works.
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      backend:
-        condition: service_healthy

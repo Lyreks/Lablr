@@ -1,0 +1,9 @@
+.git
+.claude
+.env
+.env.*
+docs
+**/node_modules
+**/target
+frontend/build
+frontend/.react-router
