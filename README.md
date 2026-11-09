@@ -43,10 +43,7 @@ Gmail doesn't move nested labels itself, so the backend does, and rolls back if 
 
 ## Google OAuth setup
 
-Copy `.env.example` to `.env` and fill in a Google OAuth client ID and secret (Web application, `gmail.labels` scope). Add a redirect URI for each way you run the app:
-
-- `http://localhost:5173/login/oauth2/code/google` (running directly)
-- `http://localhost:3000/login/oauth2/code/google` (Docker)
+Copy `.env.example` to `.env` and fill in a Google OAuth client ID and secret (Web application, `gmail.labels` scope). Add `http://localhost:3000/login/oauth2/code/google` as a redirect URI. The app is on port 3000 whether it runs directly or under Docker.
 
 While the OAuth consent screen is in testing, only accounts listed as test users can sign in, so add yours there.
 
@@ -61,7 +58,7 @@ docker compose up --build
 
 ## Run each part directly
 
-Start both, then open http://localhost:5173.
+Start both, then open http://localhost:3000. Stop the Docker stack first, since it uses the same ports.
 
 ### Backend (requires JDK 25+)
 ```bash

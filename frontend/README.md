@@ -8,7 +8,7 @@ Start the backend on :8080 first (see the root README), then:
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:3000
 ```
 
 Vite proxies `/api`, `/oauth2`, `/login/oauth2` and `/logout` to the backend, so the session cookie is first-party and there's no CORS.

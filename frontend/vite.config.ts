@@ -12,6 +12,9 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   server: {
+    // Same port as Docker, so one OAuth redirect URI covers both
+    port: 3000,
+    strictPort: true,
     proxy: {
       "/api/": backend,
       "/oauth2/": backend,
