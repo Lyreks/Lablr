@@ -304,7 +304,14 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         onRowSelectionModelChange={setRowSelectionModel}
         getRowClassName={({ row }) => drag.rowClassName(row)}
         slotProps={{ row: drag.rowProps }}
-        sx={[drag.sx, { [`& .${gridClasses.row}`]: { cursor: "pointer" } }]}
+        sx={[
+          drag.sx,
+          {
+            [`& .${gridClasses.row}`]: { cursor: "pointer" },
+            // Clicking the grip focuses its cell, and the focus outline lingers after a drag
+            [`& .${gridClasses.cell}[data-field="__drag__"]:is(:focus, :focus-within)`]: { outline: "none" },
+          },
+        ]}
       />
       <MoveLabelsDialog
         key={moveRequest.count}

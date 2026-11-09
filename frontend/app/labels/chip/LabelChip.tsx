@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Box, IconButton, Link as MuiLink, Popover, Stack } from "@mui/material";
+import { Box, IconButton, Link as MuiLink, Popover } from "@mui/material";
 
 import { ArrowDropDownIcon } from "../../components/icons";
 import type { LabelColor } from "../api";
@@ -76,12 +76,15 @@ export function LabelChip({ name, color, to, title, onColorChange }: LabelChipPr
           onKeyDown={(event) => event.stopPropagation()}
           slotProps={{ paper: { role: "dialog", "aria-label": `Color of ${name}` } }}
         >
-          <Stack spacing={2} sx={{ p: 2, width: 288 }}>
-            <Box>
-              <LabelChip name={name} color={color} />
-            </Box>
-            <ColorPicker value={color} onChange={onColorChange} />
-          </Stack>
+          <Box sx={{ p: 2, width: 288 }}>
+            <ColorPicker
+              value={color}
+              onChange={(picked) => {
+                onColorChange(picked);
+                setAnchor(null);
+              }}
+            />
+          </Box>
         </Popover>
       )}
     </>

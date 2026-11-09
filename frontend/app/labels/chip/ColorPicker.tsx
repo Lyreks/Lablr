@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Box, Button, ButtonBase, Stack, Typography } from "@mui/material";
 
 import { type LabelColor, useLabels } from "../api";
@@ -14,12 +14,14 @@ import { PaletteSelect } from "./PaletteSelect";
 
 type ColorPickerProps = {
   value: LabelColor | null;
-  // null removes the color.
+  // Commits the color; null removes it. Presets commit on click, custom colors on Apply.
   onChange: (color: LabelColor | null) => void;
 };
 
 export function ColorPicker({ value, onChange }: ColorPickerProps) {
   const labels = useLabels();
+  // Custom text/background picks stay a draft until Apply
+  const [draft, setDraft] = useState(value);
   const custom = customColors(labels.data ?? []);
   if (value && !isPreset(value) && !custom.some((color) => sameColor(color, value))) {
     custom.push(value);
@@ -42,25 +44,25 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
         <Stack direction="row" spacing={1}>
           <PaletteSelect
             label="Text"
-            value={value?.textColor ?? null}
+            value={draft?.textColor ?? null}
             onChange={(textColor) =>
-              onChange(
+              setDraft(
                 textColor === null
                   ? null
-                  : { textColor, backgroundColor: value?.backgroundColor ?? DEFAULT_BACKGROUND },
+                  : { textColor, backgroundColor: draft?.backgroundColor ?? DEFAULT_BACKGROUND },
               )
             }
           />
           <PaletteSelect
             label="Background"
-            value={value?.backgroundColor ?? null}
+            value={draft?.backgroundColor ?? null}
             onChange={(backgroundColor) =>
-              onChange(
+              setDraft(
                 backgroundColor === null
                   ? null
                   : {
                       backgroundColor,
-                      textColor: value?.textColor ?? contrastingTextColor(backgroundColor),
+                      textColor: draft?.textColor ?? contrastingTextColor(backgroundColor),
                     },
               )
             }
@@ -68,11 +70,24 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
         </Stack>
       </Section>
 
-      {value && (
-        <Button color="error" onClick={() => onChange(null)} sx={{ alignSelf: "flex-start" }}>
-          Remove color
+      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+        {value ? (
+          <Button color="error" size="small" onClick={() => onChange(null)}>
+            Remove color
+          </Button>
+        ) : (
+          <span />
+        )}
+        {/* Presets apply on click, so this only ever commits the custom draft */}
+        <Button
+          variant="contained"
+          size="small"
+          disabled={sameColor(draft, value)}
+          onClick={() => onChange(draft)}
+        >
+          Apply
         </Button>
-      )}
+      </Stack>
     </Stack>
   );
 }
