@@ -274,7 +274,8 @@ class LabelControllerTests {
 	class ErrorHandling {
 
 		@ParameterizedTest
-		@ValueSource(ints = { 400, 403, 404, 409, 429 })
+		// 499 isn't in HttpStatus.
+		@ValueSource(ints = { 400, 403, 404, 409, 429, 499 })
 		void keepsGmailStatusAndMessage(int gmailStatus) throws Exception {
 			given(labelService.get(any(), eq("TestLabel")))
 				.willThrow(gmailError(gmailStatus, "Gmail error", "Gmail says no"));

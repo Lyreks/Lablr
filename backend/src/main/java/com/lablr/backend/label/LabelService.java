@@ -63,12 +63,13 @@ public class LabelService {
 	}
 
 	public LabelResponse removeColor(OAuth2AccessToken token, String id) throws IOException {
-		Label current = labels(token).get(CURRENT_USER, id).execute();
+		Gmail.Users.Labels labels = labels(token);
+		Label current = labels.get(CURRENT_USER, id).execute();
 		Label withoutColor = new Label().setId(current.getId())
 			.setName(current.getName())
 			.setLabelListVisibility(current.getLabelListVisibility())
 			.setMessageListVisibility(current.getMessageListVisibility());
-		return LabelResponse.from(labels(token).update(CURRENT_USER, id, withoutColor).execute());
+		return LabelResponse.from(labels.update(CURRENT_USER, id, withoutColor).execute());
 	}
 
 	public void delete(OAuth2AccessToken token, String id) throws IOException {

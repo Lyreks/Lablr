@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,7 +16,8 @@ public class GmailExceptionHandler {
 	@ExceptionHandler(GoogleJsonResponseException.class)
 	ProblemDetail handleGmailError(GoogleJsonResponseException ex) {
 		String detail = (ex.getDetails() != null) ? ex.getDetails().getMessage() : ex.getStatusMessage();
-		return ProblemDetail.forStatusAndDetail(HttpStatus.valueOf(ex.getStatusCode()), detail);
+		// HttpStatus.valueOf throws for non-standard codes.
+		return ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(ex.getStatusCode()), detail);
 	}
 
 	@ExceptionHandler(MissingGmailScopeException.class)
