@@ -3,6 +3,7 @@ package com.lablr.backend.config;
 import java.io.IOException;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -10,16 +11,37 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LoginReturnToTests {
 
-	private final LoginReturnTo returnTo = new LoginReturnTo();
+	private static final OAuth2AuthorizationRequest GOOGLE_LOGIN = OAuth2AuthorizationRequest.authorizationCode()
+		.authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
+		.clientId("test-client-id")
+		.build();
+
+	// Stub: only the authorization path starts a login.
+	private static final OAuth2AuthorizationRequestResolver SPRING_RESOLVER = new OAuth2AuthorizationRequestResolver() {
+
+		@Override
+		public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+			return request.getRequestURI().startsWith("/oauth2/authorization/") ? GOOGLE_LOGIN : null;
+		}
+
+		@Override
+		public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId) {
+			return resolve(request);
+		}
+
+	};
+
+	private final OAuth2AuthorizationRequestResolver resolver = LoginReturnTo.remembering(SPRING_RESOLVER);
 
 	private final MockHttpSession session = new MockHttpSession();
 
@@ -29,7 +51,7 @@ class LoginReturnToTests {
 		@ParameterizedTest
 		@ValueSource(strings = { "/", "/labels", "/labels/Label_1?x=1#top" })
 		void acceptsPathsOnThisSite(String path) {
-			assertThat(returnTo.isAllowed(path)).isTrue();
+			assertThat(LoginReturnTo.isAllowed(path)).isTrue();
 		}
 
 		@ParameterizedTest
@@ -38,7 +60,7 @@ class LoginReturnToTests {
 				"http://localhost:5173/labels", "https://evil.example/labels", "javascript:alert(1)",
 				"/labels with spaces" })
 		void rejectsEverythingElse(String path) {
-			assertThat(returnTo.isAllowed(path)).isFalse();
+			assertThat(LoginReturnTo.isAllowed(path)).isFalse();
 		}
 
 	}
@@ -47,58 +69,61 @@ class LoginReturnToTests {
 	class LoginRoundTrip {
 
 		@Test
+		void passesSpringsLoginThrough() {
+			assertThat(request("/oauth2/authorization/google", "/labels")).isSameAs(GOOGLE_LOGIN);
+		}
+
+		@Test
 		void returnsToRememberedPage() throws Exception {
-			startLogin("/labels/Label_1");
+			request("/oauth2/authorization/google", "/labels/Label_1");
 
 			assertThat(finishLogin()).isEqualTo("/labels/Label_1");
 		}
 
 		@Test
 		void forgetsPageAfterUsingIt() throws Exception {
-			startLogin("/labels/Label_1");
+			request("/oauth2/authorization/google", "/labels/Label_1");
 			finishLogin();
 
 			assertThat(finishLogin()).isEqualTo(LoginReturnTo.DEFAULT_PATH);
 		}
 
 		@Test
-		void usesHomePageForDisallowedReturnTo() throws Exception {
-			startLogin("https://evil.example/labels");
+		void forgetsLeftoverPageWhenANewLoginHasNone() throws Exception {
+			request("/oauth2/authorization/google", "/labels/Label_1");
+			request("/oauth2/authorization/google", null);
 
 			assertThat(finishLogin()).isEqualTo(LoginReturnTo.DEFAULT_PATH);
 		}
 
 		@Test
-		void usesHomePageWithoutReturnTo() throws Exception {
-			startLogin(null);
+		void usesHomePageForDisallowedReturnTo() throws Exception {
+			request("/oauth2/authorization/google", "https://evil.example/labels");
 
 			assertThat(finishLogin()).isEqualTo(LoginReturnTo.DEFAULT_PATH);
 		}
 
 		@Test
 		void ignoresReturnToOutsideLogin() throws Exception {
-			MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/labels");
-			request.setSession(session);
-			request.setParameter(LoginReturnTo.PARAMETER, "/labels");
-			returnTo.rememberFilter().doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+			request("/api/labels", "/labels");
 
 			assertThat(finishLogin()).isEqualTo(LoginReturnTo.DEFAULT_PATH);
 		}
 
-		private void startLogin(String path) throws ServletException, IOException {
-			MockHttpServletRequest request = new MockHttpServletRequest("GET", "/oauth2/authorization/google");
+		private OAuth2AuthorizationRequest request(String uri, String returnTo) {
+			MockHttpServletRequest request = new MockHttpServletRequest("GET", uri);
 			request.setSession(session);
-			if (path != null) {
-				request.setParameter(LoginReturnTo.PARAMETER, path);
+			if (returnTo != null) {
+				request.setParameter(LoginReturnTo.PARAMETER, returnTo);
 			}
-			returnTo.rememberFilter().doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+			return resolver.resolve(request);
 		}
 
 		private String finishLogin() throws ServletException, IOException {
 			MockHttpServletRequest request = new MockHttpServletRequest("GET", "/login/oauth2/code/google");
 			request.setSession(session);
 			MockHttpServletResponse response = new MockHttpServletResponse();
-			returnTo.successHandler().onAuthenticationSuccess(request, response, null);
+			new LoginReturnTo.SuccessHandler().onAuthenticationSuccess(request, response, null);
 			return response.getRedirectedUrl();
 		}
 

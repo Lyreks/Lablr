@@ -1,17 +1,15 @@
 package com.lablr.backend.config;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
 /**
  * Redirects back to the page a login started from. The frontend passes {@code ?returnTo=/path},
@@ -26,45 +24,61 @@ final class LoginReturnTo {
 
 	private static final String SESSION_ATTRIBUTE = LoginReturnTo.class.getName() + ".PATH";
 
-	private static final String LOGIN_PATH_PREFIX = "/oauth2/authorization/";
+	private LoginReturnTo() {
+	}
 
-	/** Remembers {@code returnTo} when a login starts, before the redirect to Google. */
-	OncePerRequestFilter rememberFilter() {
-		return new OncePerRequestFilter() {
+	// Remembers returnTo whenever Spring starts a login, clearing any stale value.
+	static OAuth2AuthorizationRequestResolver remembering(OAuth2AuthorizationRequestResolver resolver) {
+		return new OAuth2AuthorizationRequestResolver() {
 
 			@Override
-			protected boolean shouldNotFilter(HttpServletRequest request) {
-				return !request.getRequestURI().startsWith(LOGIN_PATH_PREFIX);
+			public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+				return remember(request, resolver.resolve(request));
 			}
 
 			@Override
-			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-					FilterChain chain) throws ServletException, IOException {
-				String returnTo = request.getParameter(PARAMETER);
-				if (isAllowed(returnTo)) {
-					request.getSession().setAttribute(SESSION_ATTRIBUTE, returnTo);
-				}
-				chain.doFilter(request, response);
+			public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String registrationId) {
+				return remember(request, resolver.resolve(request, registrationId));
 			}
 
 		};
+	}
+
+	private static OAuth2AuthorizationRequest remember(HttpServletRequest request,
+			OAuth2AuthorizationRequest login) {
+		if (login != null) {
+			String returnTo = request.getParameter(PARAMETER);
+			if (isAllowed(returnTo)) {
+				request.getSession().setAttribute(SESSION_ATTRIBUTE, returnTo);
+			}
+			else if (request.getSession(false) != null) {
+				request.getSession().removeAttribute(SESSION_ATTRIBUTE);
+			}
+		}
+		return login;
 	}
 
 	// Falls back to DEFAULT_PATH without a remembered page.
-	AuthenticationSuccessHandler successHandler() {
-		return (request, response, authentication) -> {
-			String target = DEFAULT_PATH;
+	static final class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+		SuccessHandler() {
+			super(DEFAULT_PATH);
+		}
+
+		@Override
+		protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
 			HttpSession session = request.getSession(false);
 			if (session != null && session.getAttribute(SESSION_ATTRIBUTE) instanceof String returnTo) {
 				session.removeAttribute(SESSION_ATTRIBUTE);
-				target = returnTo;
+				return returnTo;
 			}
-			response.sendRedirect(target);
-		};
+			return super.determineTargetUrl(request, response);
+		}
+
 	}
 
 	// Same-site paths only: "/labels" yes, "//evil.example" or "https://…" no.
-	boolean isAllowed(String path) {
+	static boolean isAllowed(String path) {
 		if (path == null || !path.startsWith("/") || path.startsWith("//")) {
 			return false;
 		}

@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -15,14 +17,17 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 public class SecurityConfiguration {
 
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		LoginReturnTo returnTo = new LoginReturnTo();
+	SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clients)
+			throws Exception {
 		http
 			.authorizeHttpRequests(requests -> requests
 				.requestMatchers("/actuator/health", "/error").permitAll()
 				.anyRequest().authenticated())
-			.addFilterBefore(returnTo.rememberFilter(), OAuth2AuthorizationRequestRedirectFilter.class)
-			.oauth2Login(login -> login.successHandler(returnTo.successHandler()))
+			.oauth2Login(login -> login
+				.authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(
+						LoginReturnTo.remembering(new DefaultOAuth2AuthorizationRequestResolver(clients,
+								OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI))))
+				.successHandler(new LoginReturnTo.SuccessHandler()))
 			.logout(logout -> logout.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT)))
 			.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
 					new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
