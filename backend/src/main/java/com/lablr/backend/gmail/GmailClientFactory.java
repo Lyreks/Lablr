@@ -24,13 +24,8 @@ public class GmailClientFactory {
 		this.transport = transport;
 	}
 
-	// Google lets users untick individual permissions when signing in
-	public static boolean grantsLabels(OAuth2AccessToken token) {
-		return token.getScopes().contains(GmailScopes.GMAIL_LABELS);
-	}
-
 	public Gmail forUser(OAuth2AccessToken token) {
-		if (!grantsLabels(token)) {
+		if (!token.getScopes().contains(GmailScopes.GMAIL_LABELS)) {
 			throw GmailSignInRequiredException.missingScope();
 		}
 		Instant expiresAt = token.getExpiresAt();

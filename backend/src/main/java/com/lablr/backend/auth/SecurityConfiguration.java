@@ -1,9 +1,14 @@
 package com.lablr.backend.auth;
 
+import java.util.Optional;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizedClientRepository;
@@ -23,9 +28,12 @@ public class SecurityConfiguration {
 			throws Exception {
 		DefaultOAuth2AuthorizationRequestResolver google = new DefaultOAuth2AuthorizationRequestResolver(clients,
 				OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
-		// Signing in again to grant a skipped permission keeps the ones already granted
-		google.setAuthorizationRequestCustomizer((request) -> request
-			.additionalParameters((params) -> params.put("include_granted_scopes", "true")));
+		google.setAuthorizationRequestCustomizer((request) -> request.additionalParameters((params) -> {
+			// Signing in again to grant a skipped permission keeps the ones already granted
+			params.put("include_granted_scopes", "true");
+			// and skips Google's account chooser for someone already signed in
+			signedInEmail().ifPresent((email) -> params.put("login_hint", email));
+		}));
 		http
 			// Pages and assets are public; the app asks /api/me and shows its own sign-in screen
 			.authorizeHttpRequests(requests -> requests
@@ -41,6 +49,12 @@ public class SecurityConfiguration {
 			.requestCache(cache -> cache.disable())
 			.csrf(csrf -> csrf.spa());
 		return http.build();
+	}
+
+	private static Optional<String> signedInEmail() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return (authentication != null && authentication.getPrincipal() instanceof OAuth2User user)
+				? Optional.ofNullable(user.getAttribute("email")) : Optional.empty();
 	}
 
 	// Keep Google tokens in the session so they go away on logout.

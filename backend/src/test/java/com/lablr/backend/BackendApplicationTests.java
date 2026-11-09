@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @SpringBootTest(properties = { "GOOGLE_CLIENT_ID=test-client-id", "GOOGLE_CLIENT_SECRET=test-client-secret" })
@@ -47,7 +48,19 @@ class BackendApplicationTests {
 	void asksGoogleToKeepEarlierGrants() throws Exception {
 		String location = mvc.perform(get("/oauth2/authorization/google")).andReturn().getResponse().getRedirectedUrl();
 
-		assertThat(location).contains("include_granted_scopes=true");
+		assertThat(location).contains("include_granted_scopes=true").doesNotContain("login_hint");
+	}
+
+	@Test
+	void hintsTheSignedInAccountWhenSigningInAgain() throws Exception {
+		String location = mvc
+			.perform(get("/oauth2/authorization/google")
+				.with(oidcLogin().idToken((token) -> token.claim("email", "ada@example.com"))))
+			.andReturn()
+			.getResponse()
+			.getRedirectedUrl();
+
+		assertThat(location).containsAnyOf("login_hint=ada@example.com", "login_hint=ada%40example.com");
 	}
 
 }
