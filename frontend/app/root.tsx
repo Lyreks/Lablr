@@ -6,8 +6,12 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { useState } from "react";
+import { createTheme, ThemeProvider } from "@mui/material";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import type { Route } from "./+types/root";
+import { ApiError } from "./api/client";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -41,8 +45,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+const theme = createTheme({
+  cssVariables: true,
+  colorSchemes: { dark: true },
+  typography: { fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif' },
+});
+
+const retryUnlessClientError = (failureCount: number, error: Error) =>
+  !(error instanceof ApiError && error.status < 500) && failureCount < 2;
+
 export default function App() {
-  return <Outlet />;
+  const [queryClient] = useState(
+    () => new QueryClient({ defaultOptions: { queries: { retry: retryUnlessClientError } } }),
+  );
+
+  return (
+    <ThemeProvider theme={theme}>
+      <QueryClientProvider client={queryClient}>
+        <Outlet />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
