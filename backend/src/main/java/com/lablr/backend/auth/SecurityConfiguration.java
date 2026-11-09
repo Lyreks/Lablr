@@ -1,6 +1,10 @@
 package com.lablr.backend.auth;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+
+import com.google.api.services.gmail.GmailScopes;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,12 +32,19 @@ public class SecurityConfiguration {
 			throws Exception {
 		DefaultOAuth2AuthorizationRequestResolver google = new DefaultOAuth2AuthorizationRequestResolver(clients,
 				OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
-		google.setAuthorizationRequestCustomizer((request) -> request.additionalParameters((params) -> {
-			// Signing in again to grant a skipped permission keeps the ones already granted
-			params.put("include_granted_scopes", "true");
-			// and skips Google's account chooser for someone already signed in
-			signedInEmail().ifPresent((email) -> params.put("login_hint", email));
-		}));
+		Set<String> signInScopes = clients.findByRegistrationId("google").getScopes();
+		google.setAuthorizationRequestCustomizer((request) -> {
+			// Google adds earlier grants, so returning users get Gmail access back at sign-in
+			request.additionalParameters((params) -> params.put("include_granted_scopes", "true"));
+			// Sign-in only asks for the profile. Gmail labels is asked for on its own through Grant access,
+			// which also skips Google's account chooser since we know who it is.
+			signedInEmail().ifPresent((email) -> {
+				Set<String> withLabels = new HashSet<>(signInScopes);
+				withLabels.add(GmailScopes.GMAIL_LABELS);
+				request.scopes(withLabels);
+				request.additionalParameters((params) -> params.put("login_hint", email));
+			});
+		});
 		http
 			// Pages and assets are public; the app asks /api/me and shows its own sign-in screen
 			.authorizeHttpRequests(requests -> requests

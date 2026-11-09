@@ -17,7 +17,7 @@ public class GmailSignInRequiredException extends RuntimeException {
 
 	public static GmailSignInRequiredException missingScope() {
 		return new GmailSignInRequiredException("Gmail labels scope not granted", HttpStatus.FORBIDDEN,
-				"Lablr needs permission to see and edit your Gmail labels. On Google's screen, tick \"See and edit your email labels\".");
+				"One more step: let Lablr see and edit your Gmail labels.");
 	}
 
 	public static GmailSignInRequiredException expired() {

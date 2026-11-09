@@ -10,10 +10,10 @@ Lablr is a small web app for managing Gmail labels. This page explains what it d
 
 ## What Lablr accesses
 
-When you sign in with Google, Lablr asks for:
+Lablr asks Google for two things:
 
-- **Your basic profile** (name, email address and profile picture), to show who is signed in.
-- **Your Gmail labels** (the `gmail.labels` scope): label names, colors, visibility settings and message counts, so you can view, create, edit and delete them.
+- **Your basic profile** (name, email address and profile picture) when you sign in, to show who is signed in.
+- **Your Gmail labels** (the `gmail.labels` scope) when you click Grant access: label names, colors, visibility settings and message counts, so you can view, create, edit and delete them.
 
 Lablr can't read, send or delete your email. The `gmail.labels` scope only covers labels.
 

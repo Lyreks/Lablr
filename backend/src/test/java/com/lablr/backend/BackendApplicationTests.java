@@ -45,14 +45,14 @@ class BackendApplicationTests {
 	}
 
 	@Test
-	void asksGoogleToKeepEarlierGrants() throws Exception {
+	void signInAsksForTheProfileOnlyAndKeepsEarlierGrants() throws Exception {
 		String location = mvc.perform(get("/oauth2/authorization/google")).andReturn().getResponse().getRedirectedUrl();
 
-		assertThat(location).contains("include_granted_scopes=true").doesNotContain("login_hint");
+		assertThat(location).contains("include_granted_scopes=true").doesNotContain("gmail.labels").doesNotContain("login_hint");
 	}
 
 	@Test
-	void hintsTheSignedInAccountWhenSigningInAgain() throws Exception {
+	void grantingAccessAsksForGmailLabelsForTheSignedInAccount() throws Exception {
 		String location = mvc
 			.perform(get("/oauth2/authorization/google")
 				.with(oidcLogin().idToken((token) -> token.claim("email", "ada@example.com"))))
@@ -60,7 +60,7 @@ class BackendApplicationTests {
 			.getResponse()
 			.getRedirectedUrl();
 
-		assertThat(location).containsAnyOf("login_hint=ada@example.com", "login_hint=ada%40example.com");
+		assertThat(location).contains("gmail.labels").containsAnyOf("login_hint=ada@example.com", "login_hint=ada%40example.com");
 	}
 
 }

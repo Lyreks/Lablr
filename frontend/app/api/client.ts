@@ -80,8 +80,9 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 
 // TODO: send these to an error tracker instead of the console
 export function reportError(error: Error) {
-  if (error instanceof ApiError && error.status === 401) {
-    return; // expected when signed out
+  // Expected: signed out, or Gmail access not granted yet
+  if (error instanceof ApiError && (error.status === 401 || (error.status === 403 && error.loginUrl))) {
+    return;
   }
   const requestId = error instanceof ApiError && error.requestId;
   console.error(requestId ? `${error.message} (request ${requestId})` : error);
