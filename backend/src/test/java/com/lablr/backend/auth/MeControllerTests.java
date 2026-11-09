@@ -1,15 +1,20 @@
 package com.lablr.backend.auth;
 
-import com.lablr.backend.auth.SecurityConfiguration;
+import java.time.Instant;
+import java.util.Set;
+
+import com.google.api.services.gmail.GmailScopes;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Client;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,10 +44,29 @@ class MeControllerTests {
 		}
 
 		@Test
+		void reportsGmailAccessWhenLabelsScopeGranted() throws Exception {
+			mvc.perform(get("/api/me").with(oidcLogin()).with(oauth2Client("test").accessToken(token(GmailScopes.GMAIL_LABELS))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.gmailAccess").value(true));
+		}
+
+		@Test
+		void reportsNoGmailAccessWhenLabelsScopeSkipped() throws Exception {
+			mvc.perform(get("/api/me").with(oidcLogin()).with(oauth2Client("test").accessToken(token("openid", "email", "profile"))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.gmailAccess").value(false));
+		}
+
+		@Test
 		void requiresLogin() throws Exception {
 			mvc.perform(get("/api/me")).andExpect(status().isUnauthorized());
 		}
 
+	}
+
+	private static OAuth2AccessToken token(String... scopes) {
+		return new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "token", Instant.now(),
+				Instant.now().plusSeconds(3600), Set.of(scopes));
 	}
 
 	@Nested

@@ -6,6 +6,8 @@ export type Me = {
   name: string;
   email: string;
   picture?: string;
+  // False when Gmail labels was left unticked on Google's consent screen
+  gmailAccess: boolean;
 };
 
 export function useMe() {

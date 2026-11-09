@@ -21,15 +21,18 @@ public class SecurityConfiguration {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clients)
 			throws Exception {
+		DefaultOAuth2AuthorizationRequestResolver google = new DefaultOAuth2AuthorizationRequestResolver(clients,
+				OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
+		// Signing in again to grant a skipped permission keeps the ones already granted
+		google.setAuthorizationRequestCustomizer((request) -> request
+			.additionalParameters((params) -> params.put("include_granted_scopes", "true")));
 		http
 			// Pages and assets are public; the app asks /api/me and shows its own sign-in screen
 			.authorizeHttpRequests(requests -> requests
 				.requestMatchers("/api/**").authenticated()
 				.anyRequest().permitAll())
 			.oauth2Login(login -> login
-				.authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(
-						LoginReturnTo.remembering(new DefaultOAuth2AuthorizationRequestResolver(clients,
-								OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI))))
+				.authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(LoginReturnTo.remembering(google)))
 				.successHandler(new LoginReturnTo.SuccessHandler()))
 			.logout(logout -> logout.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT)))
 			.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(

@@ -43,4 +43,11 @@ class BackendApplicationTests {
 		assertThat(location).contains("redirect_uri=https://lablr.example/login/oauth2/code/google");
 	}
 
+	@Test
+	void asksGoogleToKeepEarlierGrants() throws Exception {
+		String location = mvc.perform(get("/oauth2/authorization/google")).andReturn().getResponse().getRedirectedUrl();
+
+		assertThat(location).contains("include_granted_scopes=true");
+	}
+
 }
