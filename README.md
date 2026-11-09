@@ -2,6 +2,18 @@
 
 Manage your Gmail labels: list them in a Data Grid, create, rename, nest, color and delete them. A Spring Boot API sits between the React app and the Gmail API, signing users in with Google and only asking for the `gmail.labels` scope.
 
+## Screenshots
+
+With sample labels.
+
+![Labels grid with nested labels, colors and visibility settings](docs/screenshots/labels.png)
+
+![Label page with breadcrumbs, settings and the labels inside it](docs/screenshots/label.png)
+
+![Color picker with Gmail's presets](docs/screenshots/color-picker.png)
+
+![Moving two labels, previewing the renames](docs/screenshots/move.png)
+
 ## Layout
 
 | Path                 | What                                                    |
@@ -35,6 +47,8 @@ Copy `.env.example` to `.env` and fill in a Google OAuth client ID and secret (W
 
 - `http://localhost:5173/login/oauth2/code/google` (running directly)
 - `http://localhost:3000/login/oauth2/code/google` (Docker)
+
+While the OAuth consent screen is in testing, only accounts listed as test users can sign in, so add yours there.
 
 ## Run everything with Docker
 
