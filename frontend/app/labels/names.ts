@@ -1,5 +1,11 @@
 // Gmail nests labels by name: "Work/Invoices" shows up under "Work".
 
+export const TOP_LEVEL = "";
+
+export function userLabelNames(labels: { name: string; type: string }[]) {
+  return labels.filter((label) => label.type === "user").map((label) => label.name);
+}
+
 export function splitName(name: string) {
   const slash = name.lastIndexOf("/");
   return slash < 0
@@ -78,6 +84,8 @@ export function planMove(selected: string[], allNames: string[], destination: st
   }
   return plan;
 }
+
+export const canCarryOut = (plan: MovePlan) => plan.problem === null && plan.roots.length > 0;
 
 export type TreeNode = {
   // Name relative to the closest existing ancestor ("Work/Invoices/2026" → "Invoices/2026").

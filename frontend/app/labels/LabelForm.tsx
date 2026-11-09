@@ -5,15 +5,14 @@ import { Link as MuiLink, MenuItem, Stack, TextField } from "@mui/material";
 import { type LabelInput, useLabels } from "./api";
 import { LabelChip } from "./LabelChip";
 import { EditableLabelChip } from "./LabelColorPicker";
-import { compareNames, isSameOrNestedUnder, joinName, splitName } from "./names";
+import { joinName, splitName, userLabelNames } from "./names";
+import { ParentSelect } from "./ParentSelect";
 import {
   sidebarRestrictionLookup,
   sidebarRestrictionText,
   labelListVisibility,
   messageListVisibility,
 } from "./visibility";
-
-const TOP_LEVEL = "";
 
 export const newLabel: LabelInput = {
   name: "",
@@ -46,19 +45,10 @@ export function LabelForm({
     defaultValues: { ...defaultValues, parent, leaf },
   });
   const previewName = useWatch({ control, name: "leaf" }).trim() || "Label";
-  const restriction = sidebarRestrictionLookup(labels.data ?? [])(
-    joinName(useWatch({ control, name: "parent" }), previewName),
-  );
-  const restrictingLabel = restriction && labels.data?.find((label) => label.name === restriction.ancestor);
-
-  const parentNames = (labels.data ?? [])
-    .filter((label) => label.type === "user")
-    .map((label) => label.name)
-    .filter((name) => editingName === undefined || !isSameOrNestedUnder(name, editingName));
-  if (parent !== TOP_LEVEL && !parentNames.includes(parent)) {
-    parentNames.push(parent);
-  }
-  parentNames.sort(compareNames);
+  const pickedParent = useWatch({ control, name: "parent" });
+  const restriction = sidebarRestrictionLookup(labels.data ?? [])(joinName(pickedParent, previewName));
+  const restrictingLabel =
+    restriction && labels.data?.find((label) => label.name === restriction.ancestor);
 
   return (
     <Stack
@@ -90,20 +80,15 @@ export function LabelForm({
         name="parent"
         control={control}
         render={({ field }) => (
-          <TextField
-            {...field}
-            select
+          <ParentSelect
             label="Nested under"
+            value={field.value}
+            onChange={field.onChange}
+            names={userLabelNames(labels.data ?? [])}
+            placing={editingName === undefined ? [] : [editingName]}
             disabled={disabled}
             helperText="Shows this label inside another one in Gmail's sidebar."
-          >
-            <MenuItem value={TOP_LEVEL}>Nothing (top level)</MenuItem>
-            {parentNames.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </TextField>
+          />
         )}
       />
       <Controller

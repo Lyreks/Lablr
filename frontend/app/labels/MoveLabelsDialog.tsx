@@ -7,17 +7,14 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
 import { type Label, useUpdateLabel } from "./api";
-import { compareNames, isSameOrNestedUnder, planMove } from "./names";
-
-const TOP_LEVEL = "";
+import { canCarryOut, planMove, TOP_LEVEL, userLabelNames } from "./names";
+import { ParentSelect } from "./ParentSelect";
 
 type MoveLabelsDialogProps = {
   open: boolean;
@@ -43,11 +40,7 @@ export function MoveLabelsDialog({
   const [progress, setProgress] = useState<{ done: number; error: Error } | null>(null);
 
   const selectedNames = selected.map((label) => label.name);
-  const userNames = labels.filter((label) => label.type === "user").map((label) => label.name);
-  // A label can't move inside itself.
-  const destinations = userNames
-    .filter((name) => !selectedNames.some((picked) => isSameOrNestedUnder(name, picked)))
-    .sort(compareNames);
+  const userNames = userLabelNames(labels);
   const plan = planMove(selectedNames, userNames, destination);
   const total = plan.roots.reduce((count, root) => count + 1 + root.children.length, 0);
   const idByName = new Map(labels.map((label) => [label.name, label.id]));
@@ -83,20 +76,14 @@ export function MoveLabelsDialog({
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
-          <TextField
-            select
+          <ParentSelect
             label="Move into"
             value={destination}
+            onChange={setDestination}
+            names={userNames}
+            placing={selectedNames}
             disabled={moving}
-            onChange={(event) => setDestination(event.target.value)}
-          >
-            <MenuItem value={TOP_LEVEL}>Nothing (top level)</MenuItem>
-            {destinations.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </TextField>
+          />
 
           <Alert severity="info">
             Labels inside the ones you move go with them and keep their place underneath, so the
@@ -160,7 +147,7 @@ export function MoveLabelsDialog({
         <Button
           variant="contained"
           loading={moving}
-          disabled={plan.problem !== null || plan.roots.length === 0}
+          disabled={!canCarryOut(plan)}
           onClick={move}
         >
           {total === 0 ? "Move" : `Move ${total} ${total === 1 ? "label" : "labels"}`}

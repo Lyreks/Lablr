@@ -28,7 +28,14 @@ import { LabelChip } from "./LabelChip";
 import { DragIndicatorIcon } from "./icons";
 import { EditableLabelChip } from "./LabelColorPicker";
 import { MoveLabelsDialog } from "./MoveLabelsDialog";
-import { compareNames, isSameOrNestedUnder, joinName, labelTree, planMove, splitName } from "./names";
+import {
+  canCarryOut,
+  compareNames,
+  labelTree,
+  planMove,
+  splitName,
+  userLabelNames,
+} from "./names";
 import {
   sidebarRestrictionLookup,
   sidebarRestrictionText,
@@ -51,10 +58,6 @@ const HIDE_SYSTEM_FILTER: GridFilterItem = {
   operator: "equals",
   value: "user",
 };
-
-// Not where it already is, and not inside itself.
-const canMoveUnder = (name: string, parent: string) =>
-  parent !== splitName(name).parent && (parent === "" || !isSameOrNestedUnder(parent, name));
 
 type DropMark = "inside" | "above" | "below";
 
@@ -164,13 +167,16 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
   const latest = useRef({ selected, labels });
   latest.current = { selected, labels };
 
-  const canDrop = (parent: string) => {
+  // Same rules as the Move dialog.
+  const planDrop = (parent: string) => {
     const drag = dragged.current;
-    if (!drag) return false;
-    if (drag.group.length === 1) return canMoveUnder(drag.label.name, parent);
-    const userNames = latest.current.labels.filter((l) => l.type === "user").map((l) => l.name);
-    const plan = planMove(drag.group.map((label) => label.name), userNames, parent);
-    return plan.problem === null && plan.roots.length > 0;
+    if (!drag) return null;
+    const names = drag.group.map((label) => label.name);
+    return planMove(names, userLabelNames(latest.current.labels), parent);
+  };
+  const canDrop = (parent: string) => {
+    const plan = planDrop(parent);
+    return plan !== null && canCarryOut(plan);
   };
 
   // Edges of a top-level row target the top level; anywhere else nests. Rows carry their
@@ -218,9 +224,10 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         markRow(null);
         const spot = dropSpot(event);
         const drag = dragged.current;
-        if (!spot || !drag || !canDrop(spot.parent)) return;
+        const plan = spot && planDrop(spot.parent);
+        if (!spot || !drag || !plan || !canCarryOut(plan)) return;
         if (drag.group.length === 1) {
-          onChange(drag.label, { name: joinName(spot.parent, splitName(drag.label.name).leaf) });
+          onChange(drag.label, { name: plan.roots[0].newName });
         } else {
           openMove(spot.parent);
         }
