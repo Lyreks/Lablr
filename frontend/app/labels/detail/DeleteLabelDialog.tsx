@@ -13,7 +13,7 @@ import {
 
 import { ApiErrorAlert } from "../../api/ApiErrorAlert";
 import { type Label, useDeleteLabel, useLabels } from "../api";
-import { isSameOrNestedUnder, splitName } from "../names";
+import { nestedUnder, splitName } from "../names";
 
 type DeleteLabelDialogProps = {
   label: Label;
@@ -27,9 +27,7 @@ export function DeleteLabelDialog({ label, open, onClose, onDeleted }: DeleteLab
   const labels = useLabels();
   const [deleteNested, setDeleteNested] = useState(false);
 
-  const childCount = (labels.data ?? []).filter(
-    (other) => other.id !== label.id && isSameOrNestedUnder(other.name, label.name),
-  ).length;
+  const childCount = nestedUnder(labels.data ?? [], label.name).length;
   const children = childCount === 1 ? "The label inside it" : `The ${childCount} labels inside it`;
   const { parent } = splitName(label.name);
 

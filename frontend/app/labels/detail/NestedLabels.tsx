@@ -4,7 +4,7 @@ import { ApiErrorAlert } from "../../api/ApiErrorAlert";
 import { type Label, labelPagePath, useLabels } from "../api";
 import { LabelChip } from "../ui/LabelChip";
 import { TreeGuides } from "../ui/TreeGuides";
-import { compareNames, isSameOrNestedUnder, labelTree } from "../names";
+import { compareNames, labelTree, nestedUnder } from "../names";
 
 type NestedLabelsProps = {
   label: Label;
@@ -14,9 +14,7 @@ type NestedLabelsProps = {
 // Everything nested under a label, drawn as a tree like the grid. Updates live as labels are added.
 export function NestedLabels({ label, onAdd }: NestedLabelsProps) {
   const labels = useLabels();
-  const nested = (labels.data ?? [])
-    .filter((other) => other.id !== label.id && isSameOrNestedUnder(other.name, label.name))
-    .sort((a, b) => compareNames(a.name, b.name));
+  const nested = nestedUnder(labels.data ?? [], label.name).sort((a, b) => compareNames(a.name, b.name));
   // Rooted at this label, so its direct children get the first level of guides
   const tree = labelTree([label.name, ...nested.map((other) => other.name)]);
 

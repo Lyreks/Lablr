@@ -21,6 +21,11 @@ export function isSameOrNestedUnder(name: string, ancestor: string) {
   return name === ancestor || name.startsWith(`${ancestor}/`);
 }
 
+// Everything nested under `ancestor`, at any depth
+export function nestedUnder<T extends { name: string }>(labels: T[], ancestor: string) {
+  return labels.filter((label) => label.name.startsWith(`${ancestor}/`));
+}
+
 // Sorts each parent directly before its children.
 export function compareNames(a: string, b: string) {
   const aParts = a.split("/");

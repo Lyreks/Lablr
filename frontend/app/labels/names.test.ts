@@ -5,6 +5,7 @@ import {
   compareNames,
   joinName,
   labelTree,
+  nestedUnder,
   planMove,
   splitName,
   TOP_LEVEL,
@@ -20,6 +21,13 @@ describe("splitName and joinName", () => {
   it("join them back", () => {
     expect(joinName("Work/Clients", "Acme")).toBe("Work/Clients/Acme");
     expect(joinName(TOP_LEVEL, "Work")).toBe("Work");
+  });
+});
+
+describe("nestedUnder", () => {
+  it("finds labels at any depth, but not the label itself or similar names", () => {
+    const labels = ["Work", "Work/Clients", "Work/Clients/Acme", "Workshop", "Home"].map((name) => ({ name }));
+    expect(nestedUnder(labels, "Work").map((label) => label.name)).toEqual(["Work/Clients", "Work/Clients/Acme"]);
   });
 });
 
