@@ -7,9 +7,7 @@ import { type Label, type LabelInput, useLabels, useUpdateLabel } from "../label
 import { CreateLabelDialog } from "../labels/CreateLabelDialog";
 import { LabelGrid } from "../labels/LabelGrid";
 
-export function meta({}: Route.MetaArgs) {
-  return [{ title: "Labels · Lablr" }];
-}
+export const meta: Route.MetaFunction = () => [{ title: "Labels · Lablr" }];
 
 export default function Labels() {
   const labels = useLabels();

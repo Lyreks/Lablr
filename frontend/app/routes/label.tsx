@@ -24,9 +24,7 @@ import { LabelForm } from "../labels/LabelForm";
 
 const FORM_ID = "edit-label-form";
 
-export function meta({}: Route.MetaArgs) {
-  return [{ title: "Label · Lablr" }];
-}
+export const meta: Route.MetaFunction = () => [{ title: "Label · Lablr" }];
 
 export default function LabelDetail({ params }: Route.ComponentProps) {
   const label = useLabel(params.labelId);
