@@ -30,12 +30,13 @@ app/
   routes/        pages: /labels (grid), /labels/:labelId (detail/edit)
   labels/        query hooks (api.ts) and the pure naming/move/visibility/color
                  logic, which has the tests
-    grid/        Data Grid, its columns and toolbar, drag-and-drop, Move dialog
+    grid/        Data Grid and its columns, drag-and-drop, Move dialog
     form/        label form, create dialog
     detail/      detail page pieces: breadcrumbs, nested label tree, delete dialog
     ui/          pieces shared by the above: label chip, color picker, parent and
                  visibility pickers, tree lines
-  components/    shared bits: logo, API error alert, info tooltip, icons
+  components/    shared across sections: page header, section card, grid toolbar and
+                 helpers, API error alert, logo, info tooltip, icons
   api/           fetch wrapper
   auth/          current user and the sign-in gate
 ```

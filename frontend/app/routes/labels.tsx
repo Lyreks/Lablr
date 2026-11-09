@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
-import { Button, CircularProgress, Stack, Typography } from "@mui/material";
+import { Button, CircularProgress, Stack } from "@mui/material";
 
 import type { Route } from "./+types/labels";
 import { ApiErrorAlert } from "../components/ApiErrorAlert";
+import { PageHeader } from "../components/PageHeader";
 import { type Label, type LabelInput, useLabels, useUpdateLabel } from "../labels/api";
 import { CreateLabelDialog } from "../labels/form/CreateLabelDialog";
 import { LabelGrid } from "../labels/grid/LabelGrid";
@@ -22,14 +23,14 @@ export default function Labels() {
 
   return (
     <Stack spacing={3}>
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h5" component="h1">
-          Labels
-        </Typography>
-        <Button variant="contained" onClick={() => setCreating(true)}>
-          New label
-        </Button>
-      </Stack>
+      <PageHeader
+        title="Labels"
+        actions={
+          <Button variant="contained" onClick={() => setCreating(true)}>
+            New label
+          </Button>
+        }
+      />
 
       {labels.isPending && <CircularProgress sx={{ alignSelf: "center" }} />}
       {labels.isError && <ApiErrorAlert error={labels.error} />}

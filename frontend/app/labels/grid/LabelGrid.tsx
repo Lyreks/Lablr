@@ -1,28 +1,26 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Box } from "@mui/material";
+import { Box, Button, FormControlLabel, Switch } from "@mui/material";
 import {
   DataGrid,
   gridClasses,
   type GridColumnVisibilityModel,
   type GridFilterItem,
   type GridFilterModel,
-  type GridPaginationModel,
   type GridRowSelectionModel,
   type GridSortModel,
 } from "@mui/x-data-grid";
 
+import { isRowControlClick, useStoredPagination } from "../../components/grid";
+import { GridToolbar } from "../../components/GridToolbar";
 import { readStored, writeStored } from "../../storage";
 import { type Label, type LabelInput, labelPagePath } from "../api";
 import { DRAG_FIELD, labelColumns } from "./columns";
-import { LabelGridToolbar } from "./LabelGridToolbar";
 import { MoveLabelsDialog } from "./MoveLabelsDialog";
 import { TOP_LEVEL } from "../names";
 import { useLabelDragAndDrop } from "./useLabelDragAndDrop";
 
-const PAGE_SIZE_KEY = "lablr.labels.pageSize";
 const SHOW_SYSTEM_KEY = "lablr.labels.showSystem";
-const pageSizeOptions = [10, 25, 50, 100];
 
 // A real grid filter, so it shows up in the filter panel.
 const HIDE_SYSTEM_FILTER: GridFilterItem = {
@@ -37,16 +35,7 @@ const hidesSystem = (filterModel: GridFilterModel) =>
     (item) => item.field === "type" && item.operator === "equals" && item.value === "user",
   );
 
-function storedPageSize() {
-  const pageSize = Number(readStored(PAGE_SIZE_KEY));
-  return pageSizeOptions.includes(pageSize) ? pageSize : pageSizeOptions[0];
-}
-
 const NOTHING_SELECTED: GridRowSelectionModel = { type: "include", ids: new Set() };
-
-// Clicking these shouldn't open the label. The grid already ignores the checkbox column and
-// portal clicks (select menus).
-const ROW_CONTROLS = 'a, button, [role="button"], [role="combobox"], [draggable="true"]';
 
 type LabelGridProps = {
   labels: Label[];
@@ -55,10 +44,7 @@ type LabelGridProps = {
 
 export function LabelGrid({ labels, onChange }: LabelGridProps) {
   const navigate = useNavigate();
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>(() => ({
-    page: 0,
-    pageSize: storedPageSize(),
-  }));
+  const pagination = useStoredPagination("lablr.labels.pageSize");
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: "name", sort: "asc" }]);
   const [filterModel, setFilterModel] = useState<GridFilterModel>(() => ({
     items: readStored(SHOW_SYSTEM_KEY) === "true" ? [] : [HIDE_SYSTEM_FILTER],
@@ -114,16 +100,11 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         autoHeight
         disableRowSelectionOnClick
         onRowClick={({ row }, event) => {
-          if (!(event.target as Element).closest(ROW_CONTROLS)) {
+          if (!isRowControlClick(event)) {
             navigate(labelPagePath(row));
           }
         }}
-        pageSizeOptions={pageSizeOptions}
-        paginationModel={paginationModel}
-        onPaginationModelChange={(model) => {
-          setPaginationModel(model);
-          writeStored(PAGE_SIZE_KEY, String(model.pageSize));
-        }}
+        {...pagination}
         sortModel={sortModel}
         onSortModelChange={setSortModel}
         filterModel={filterModel}
@@ -139,15 +120,27 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         hideFooterSelectedRowCount
         getRowClassName={({ row }) => drag.rowClassName(row)}
         showToolbar
-        slots={{ toolbar: LabelGridToolbar }}
+        slots={{ toolbar: GridToolbar }}
         slotProps={{
           row: drag.rowProps,
           toolbar: {
             selectedCount: selected.length,
-            onMove: () => openMove(TOP_LEVEL),
+            selectionActions: (
+              <Button variant="contained" size="small" onClick={() => openMove(TOP_LEVEL)}>
+                Move to…
+              </Button>
+            ),
             onClearSelection: () => setRowSelectionModel(NOTHING_SELECTED),
-            showSystem,
-            onShowSystemChange: setShowSystem,
+            options: (
+              <FormControlLabel
+                label="Show system labels"
+                slotProps={{ typography: { variant: "body2" } }}
+                control={
+                  <Switch size="small" checked={showSystem} onChange={(_, show) => setShowSystem(show)} />
+                }
+                sx={{ mr: 1 }}
+              />
+            ),
           },
         }}
         sx={[

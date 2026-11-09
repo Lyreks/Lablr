@@ -1,18 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Chip, CircularProgress, Stack } from "@mui/material";
 
 import type { Route } from "./+types/label";
 import { ApiErrorAlert } from "../components/ApiErrorAlert";
+import { PageHeader } from "../components/PageHeader";
+import { Section } from "../components/Section";
 import { type Label, useLabel, useUpdateLabel } from "../labels/api";
 import { sameColor } from "../labels/colors";
 import { DeleteLabelDialog } from "../labels/detail/DeleteLabelDialog";
@@ -33,7 +26,7 @@ export default function LabelDetail({ params }: Route.ComponentProps) {
   }
   return (
     <Stack spacing={3}>
-      <LabelBreadcrumbs />
+      <PageHeader title={<LabelBreadcrumbs />} />
       {label.isPending && <CircularProgress sx={{ alignSelf: "center" }} />}
       {label.isError && <ApiErrorAlert error={label.error} />}
     </Stack>
@@ -49,17 +42,21 @@ function LabelEditor({ label }: { label: Label }) {
 
   return (
     <Stack spacing={3}>
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-          <LabelBreadcrumbs name={label.name} />
-          <Chip label={label.type} size="small" variant={isSystem ? "outlined" : "filled"} />
-        </Stack>
-        {!isSystem && (
-          <Button color="error" variant="outlined" onClick={() => setConfirmingDelete(true)}>
-            Delete
-          </Button>
-        )}
-      </Stack>
+      <PageHeader
+        title={
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+            <LabelBreadcrumbs name={label.name} />
+            <Chip label={label.type} size="small" variant={isSystem ? "outlined" : "filled"} />
+          </Stack>
+        }
+        actions={
+          !isSystem && (
+            <Button color="error" variant="outlined" onClick={() => setConfirmingDelete(true)}>
+              Delete
+            </Button>
+          )
+        }
+      />
 
       <Box
         sx={{
@@ -69,17 +66,11 @@ function LabelEditor({ label }: { label: Label }) {
           gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))" },
         }}
       >
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Section
+          title="Settings"
+          subtitle={`${label.messagesTotal ?? 0} messages · ${label.messagesUnread ?? 0} unread`}
+        >
           <Stack spacing={3}>
-            <Box>
-              <Typography variant="h6" component="h2">
-                Settings
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {label.messagesTotal ?? 0} messages · {label.messagesUnread ?? 0} unread
-              </Typography>
-            </Box>
-
             {isSystem && (
               <Alert severity="info">System labels are managed by Gmail and can't be changed.</Alert>
             )}
@@ -119,13 +110,20 @@ function LabelEditor({ label }: { label: Label }) {
               </Button>
             )}
           </Stack>
-        </Paper>
+        </Section>
 
         {/* System labels can't have labels inside them */}
         {!isSystem && (
-          <Paper variant="outlined" sx={{ p: 3 }}>
-            <NestedLabels label={label} onAdd={() => setCreatingChild(true)} />
-          </Paper>
+          <Section
+            title="Labels inside"
+            actions={
+              <Button size="small" onClick={() => setCreatingChild(true)}>
+                Add sub-label
+              </Button>
+            }
+          >
+            <NestedLabels label={label} />
+          </Section>
         )}
       </Box>
 
