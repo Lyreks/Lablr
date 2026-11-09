@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Builds the root Dockerfile with Cloud Build and deploys it to Cloud Run. One-time setup is in the README.
+# Builds the root Dockerfile with Cloud Build and deploys it to Cloud Run.
+# Expects the OAuth client in Secret Manager as google-client-id and google-client-secret.
 set -euo pipefail
 
 # One instance, since sign-in sessions live in memory
