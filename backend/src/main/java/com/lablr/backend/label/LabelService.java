@@ -35,7 +35,31 @@ public class LabelService {
 	}
 
 	public LabelResponse update(OAuth2AccessToken token, String id, UpdateLabelRequest request) throws IOException {
-		return LabelResponse.from(labels(token).patch(CURRENT_USER, id, request.toGmail()).execute());
+		Gmail.Users.Labels labels = labels(token);
+		String oldName = (request.name() != null) ? labels.get(CURRENT_USER, id).execute().getName() : null;
+		Label updated = labels.patch(CURRENT_USER, id, request.toGmail()).execute();
+		if (oldName != null && !oldName.equals(updated.getName())) {
+			renameNestedLabels(labels, oldName, updated.getName());
+		}
+		return LabelResponse.from(updated);
+	}
+
+	/**
+	 * Gmail doesn't rename child labels along with their parent, so do it here:
+	 * "Work/Invoices" → "Archive/Work/Invoices".
+	 */
+	private void renameNestedLabels(Gmail.Users.Labels labels, String oldName, String newName) throws IOException {
+		String oldPrefix = oldName + "/";
+		List<Label> all = labels.list(CURRENT_USER).execute().getLabels();
+		if (all == null) {
+			return;
+		}
+		for (Label label : all) {
+			if (label.getName().startsWith(oldPrefix)) {
+				String renamed = newName + "/" + label.getName().substring(oldPrefix.length());
+				labels.patch(CURRENT_USER, label.getId(), new Label().setName(renamed)).execute();
+			}
+		}
 	}
 
 	public LabelResponse removeColor(OAuth2AccessToken token, String id) throws IOException {

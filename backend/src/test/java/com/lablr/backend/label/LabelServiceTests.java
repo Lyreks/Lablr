@@ -149,6 +149,54 @@ class LabelServiceTests {
 					""", gmail.request.getContentAsString(), true);
 		}
 
+		@Test
+		void leavesNameAloneWhenNotRenaming() throws Exception {
+			gmail.respondWith(200, """
+					{ "id": "TestLabel", "name": "Work" }
+					""");
+
+			labelService.update(token, "TestLabel", new UpdateLabelRequest(null, "labelHide", null, null));
+
+			assertThat(gmail.requests).hasSize(1);
+		}
+
+		@Test
+		void movesNestedLabelsAlongWithRenamedLabel() throws Exception {
+			// Moving "Work/Clients" to the top level as "Clients".
+			gmail.respondWith(200, """
+					{ "id": "Clients", "name": "Work/Clients" }
+					""");
+			gmail.thenRespondWith(200, """
+					{ "id": "Clients", "name": "Clients" }
+					""");
+			gmail.thenRespondWith(200, """
+					{
+					  "labels": [
+					    { "id": "Work", "name": "Work" },
+					    { "id": "Clients", "name": "Clients" },
+					    { "id": "Acme", "name": "Work/Clients/Acme" },
+					    { "id": "Invoices", "name": "Work/Clients/Acme/Invoices" },
+					    { "id": "Other", "name": "Work/Clients Old" }
+					  ]
+					}
+					""");
+			gmail.thenRespondWith(200, "{}");
+
+			LabelResponse moved = labelService.update(token, "Clients",
+					new UpdateLabelRequest("Clients", null, null, null));
+
+			assertThat(moved.name()).isEqualTo("Clients");
+			List<RecordingTransport.Request> renames = gmail.requests.subList(3, gmail.requests.size());
+			assertThat(renames).extracting((rename) -> rename.request().getUrl())
+				.containsExactly(LABELS_URL + "/Acme", LABELS_URL + "/Invoices");
+			JSONAssert.assertEquals("""
+					{ "name": "Clients/Acme" }
+					""", renames.get(0).body(), true);
+			JSONAssert.assertEquals("""
+					{ "name": "Clients/Acme/Invoices" }
+					""", renames.get(1).body(), true);
+		}
+
 	}
 
 	@Nested
