@@ -36,4 +36,4 @@ You can sign out at any time, and revoke Lablr's access to your Google account a
 
 ## Contact
 
-Questions about this policy: [open an issue on GitHub](https://github.com/Lyreks/GmailLabeler/issues).
+Questions about this policy: [open an issue on GitHub](https://github.com/Lyreks/Lablr/issues).
