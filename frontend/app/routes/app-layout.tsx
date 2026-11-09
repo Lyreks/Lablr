@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from "react-router";
+import { NavLink, Outlet } from "react-router";
 import {
   AppBar,
   Avatar,
@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 
 import { AuthGate } from "../auth/AuthGate";
+import { Logo } from "../Logo";
 import { useSignOut } from "../auth/api";
 
 type Section = { text: string; to?: string; soon?: string };
@@ -32,39 +33,7 @@ export default function AppLayout() {
         <>
           <AppBar position="static" color="default" elevation={0}>
             <Toolbar sx={{ gap: 2 }}>
-              {/* Tag-shaped wordmark. */}
-              <Typography
-                variant="h6"
-                component={Link}
-                to="/"
-                sx={{
-                  position: "relative",
-                  display: "inline-block",
-                  pl: 3,
-                  pr: 1.5,
-                  lineHeight: 1.6,
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  textDecoration: "none",
-                  color: "primary.contrastText",
-                  bgcolor: "primary.main",
-                  borderRadius: "0 6px 6px 0",
-                  clipPath: "polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%)",
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    left: 9,
-                    top: "50%",
-                    width: 6,
-                    height: 6,
-                    mt: "-3px",
-                    borderRadius: "50%",
-                    bgcolor: "var(--mui-palette-AppBar-defaultBg)",
-                  },
-                }}
-              >
-                Lablr
-              </Typography>
+              <Logo to="/" />
               <nav style={{ flexGrow: 1 }}>
                 {sections.map((section) =>
                   section.to ? (

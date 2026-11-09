@@ -3,6 +3,7 @@ import { Box, Button, CircularProgress, Container, Stack, Typography } from "@mu
 
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
 import { ApiError, loginUrl } from "../api/client";
+import { Logo } from "../Logo";
 import { type Me, useMe } from "./api";
 
 export function AuthGate({ children }: { children: (me: Me) => ReactNode }) {
@@ -20,9 +21,7 @@ export function AuthGate({ children }: { children: (me: Me) => ReactNode }) {
     return (
       <Container maxWidth="sm" sx={{ py: 12 }}>
         <Stack spacing={3} sx={{ alignItems: "center", textAlign: "center" }}>
-          <Typography variant="h4" component="h1">
-            Lablr
-          </Typography>
+          <Logo variant="h4" component="h1" />
           <Typography color="text.secondary">Organize your Gmail.</Typography>
           {me.error instanceof ApiError && me.error.status === 401 ? (
             <Button variant="contained" size="large" href={loginUrl()}>
