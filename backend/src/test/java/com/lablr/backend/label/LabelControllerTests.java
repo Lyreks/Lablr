@@ -21,10 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -308,7 +310,53 @@ class LabelControllerTests {
 			given(labelService.list(any())).willThrow(new IOException("Connection reset"));
 
 			mvc.perform(get(LABELS).with(oidcLogin()))
-				.andExpect(status().isBadGateway());
+				.andExpect(status().isBadGateway())
+				.andExpect(jsonPath("$.detail").value("Gmail couldn't be reached. Try again in a moment."));
+		}
+
+		@ParameterizedTest
+		@ValueSource(ints = { 500, 503 })
+		void returnsBadGatewayWhenGmailFails(int gmailStatus) throws Exception {
+			given(labelService.list(any())).willThrow(gmailError(gmailStatus, "Error", "Backend Error"));
+
+			mvc.perform(get(LABELS).with(oidcLogin()))
+				.andExpect(status().isBadGateway())
+				.andExpect(jsonPath("$.detail").value("Gmail had a temporary problem. Try again in a moment."));
+		}
+
+		@Test
+		void asksToSignInAgainWhenGmailRejectsToken() throws Exception {
+			given(labelService.list(any())).willThrow(gmailError(401, "Unauthorized", "Invalid Credentials"));
+
+			mvc.perform(get(LABELS).with(oidcLogin()))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.loginUrl").value("/oauth2/authorization/google"));
+		}
+
+		@Test
+		void hidesDetailsOfUnexpectedErrors() throws Exception {
+			given(labelService.list(any())).willThrow(new IllegalStateException("secret internals"));
+
+			mvc.perform(get(LABELS).with(oidcLogin()))
+				.andExpect(status().isInternalServerError())
+				.andExpect(jsonPath("$.detail").value("Something went wrong on our end. Try again in a moment."));
+		}
+
+		@Test
+		void keepsSpringsStatusForResponseStatusExceptions() throws Exception {
+			given(labelService.update(any(), eq("TestLabel"), any()))
+				.willThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Already exists"));
+
+			mvc.perform(patch(LABEL).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+					{ "name": "Renamed" }
+					"""))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.detail").value("Already exists"));
+		}
+
+		@Test
+		void tagsResponsesWithRequestId() throws Exception {
+			mvc.perform(get(LABELS)).andExpect(status().isUnauthorized()).andExpect(header().exists("X-Request-Id"));
 		}
 
 	}
