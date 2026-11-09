@@ -77,3 +77,22 @@ npm run dev
 npm test                    # unit tests (Vitest)
 npm run lint                # ESLint
 ```
+
+## Hosting on Cloud Run
+
+The root `Dockerfile` is all Cloud Run needs. One-time setup, with the [gcloud CLI](https://cloud.google.com/sdk/docs/install):
+
+```bash
+gcloud config set project YOUR_PROJECT_ID
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com
+
+printf '%s' 'YOUR_CLIENT_ID' | gcloud secrets create google-client-id --data-file=-
+printf '%s' 'YOUR_CLIENT_SECRET' | gcloud secrets create google-client-secret --data-file=-
+for s in google-client-id google-client-secret; do
+  gcloud secrets add-iam-policy-binding $s \
+    --member=serviceAccount:YOUR_PROJECT_NUMBER-compute@developer.gserviceaccount.com \
+    --role=roles/secretmanager.secretAccessor
+done
+```
+
+Then deploy (and redeploy) with `./deploy.sh`. It prints the service URL. Add `https://<that URL>/login/oauth2/code/google` as a redirect URI on the OAuth client, and either publish the consent screen or add whoever needs access as a test user.
