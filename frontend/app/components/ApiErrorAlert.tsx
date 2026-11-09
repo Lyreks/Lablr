@@ -1,6 +1,6 @@
 import { Alert, Button } from "@mui/material";
 
-import { ApiError } from "./client";
+import { ApiError } from "../api/client";
 
 export function ApiErrorAlert({ error }: { error: Error }) {
   const loginUrl = error instanceof ApiError ? error.loginUrl : undefined;

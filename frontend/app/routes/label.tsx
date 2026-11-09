@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 
 import type { Route } from "./+types/label";
-import { ApiErrorAlert } from "../api/ApiErrorAlert";
+import { ApiErrorAlert } from "../components/ApiErrorAlert";
 import { type Label, useLabel, useUpdateLabel } from "../labels/api";
 import { sameColor } from "../labels/colors";
 import { DeleteLabelDialog } from "../labels/detail/DeleteLabelDialog";

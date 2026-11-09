@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Button, CircularProgress, Stack, Typography } from "@mui/material";
 
 import type { Route } from "./+types/labels";
-import { ApiErrorAlert } from "../api/ApiErrorAlert";
+import { ApiErrorAlert } from "../components/ApiErrorAlert";
 import { type Label, type LabelInput, useLabels, useUpdateLabel } from "../labels/api";
 import { CreateLabelDialog } from "../labels/form/CreateLabelDialog";
 import { LabelGrid } from "../labels/grid/LabelGrid";

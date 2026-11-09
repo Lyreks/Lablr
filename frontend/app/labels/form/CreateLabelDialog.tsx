@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from "@mui/material";
 
-import { ApiErrorAlert } from "../../api/ApiErrorAlert";
+import { ApiErrorAlert } from "../../components/ApiErrorAlert";
 import { useCreateLabel } from "../api";
 import { LabelForm, newLabel } from "./LabelForm";
 import { joinName } from "../names";

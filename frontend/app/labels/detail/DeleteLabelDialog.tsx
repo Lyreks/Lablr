@@ -11,7 +11,7 @@ import {
   Stack,
 } from "@mui/material";
 
-import { ApiErrorAlert } from "../../api/ApiErrorAlert";
+import { ApiErrorAlert } from "../../components/ApiErrorAlert";
 import { type Label, useDeleteLabel, useLabels } from "../api";
 import { nestedUnder, splitName } from "../names";
 

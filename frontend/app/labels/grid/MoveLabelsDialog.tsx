@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { ApiErrorAlert } from "../../api/ApiErrorAlert";
+import { ApiErrorAlert } from "../../components/ApiErrorAlert";
 import { type Label, useUpdateLabel } from "../api";
 import { canCarryOut, planMove, TOP_LEVEL, userLabelNames } from "../names";
 import { ParentSelect } from "../ui/ParentSelect";

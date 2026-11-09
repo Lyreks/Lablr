@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Box, Button, CircularProgress, Container, Stack, Typography } from "@mui/material";
 
-import { ApiErrorAlert } from "../api/ApiErrorAlert";
+import { ApiErrorAlert } from "../components/ApiErrorAlert";
 import { ApiError, loginUrl } from "../api/client";
 import { Logo } from "../components/Logo";
 import { type Me, useMe } from "./api";

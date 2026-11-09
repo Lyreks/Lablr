@@ -1,6 +1,6 @@
 import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 
-import { ApiErrorAlert } from "../../api/ApiErrorAlert";
+import { ApiErrorAlert } from "../../components/ApiErrorAlert";
 import { type Label, labelPagePath, useLabels } from "../api";
 import { LabelChip } from "../ui/LabelChip";
 import { TreeGuides } from "../ui/TreeGuides";

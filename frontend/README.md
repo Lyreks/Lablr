@@ -33,8 +33,8 @@ app/
     detail/      detail page pieces: breadcrumbs, nested label tree, delete dialog
     ui/          pieces shared by the above: label chip, color picker, parent and
                  visibility pickers, tree lines
-  components/    shared bits: logo, info tooltip, icons
-  api/           fetch wrapper and error alert
+  components/    shared bits: logo, API error alert, info tooltip, icons
+  api/           fetch wrapper
   auth/          current user and the sign-in gate
 ```
 
