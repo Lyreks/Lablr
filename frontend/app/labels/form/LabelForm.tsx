@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link } from "react-router";
-import { Link as MuiLink, MenuItem, Stack, TextField } from "@mui/material";
+import { Link as MuiLink, Stack, TextField } from "@mui/material";
 
 import { type LabelInput, useLabels } from "../api";
 import { LabelChip } from "../chip/LabelChip";
 import { joinName, splitName, userLabelNames } from "../names";
 import { ParentSelect } from "./ParentSelect";
+import { VisibilitySelect } from "./VisibilitySelect";
 import {
   sidebarRestrictionLookup,
   sidebarRestrictionText,
@@ -129,10 +130,11 @@ export function LabelForm({
         name="labelListVisibility"
         control={control}
         render={({ field }) => (
-          <TextField
-            {...field}
-            select
-            label={labelListVisibility.title}
+          <VisibilitySelect
+            setting={labelListVisibility}
+            value={field.value}
+            onChange={field.onChange}
+            disabled={disabled}
             helperText={
               restriction ? (
                 <>
@@ -153,33 +155,20 @@ export function LabelForm({
                 labelListVisibility.help
               )
             }
-            disabled={disabled}
-          >
-            {labelListVisibility.options.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.text}
-              </MenuItem>
-            ))}
-          </TextField>
+          />
         )}
       />
       <Controller
         name="messageListVisibility"
         control={control}
         render={({ field }) => (
-          <TextField
-            {...field}
-            select
-            label={messageListVisibility.title}
-            helperText={messageListVisibility.help}
+          <VisibilitySelect
+            setting={messageListVisibility}
+            value={field.value}
+            onChange={field.onChange}
             disabled={disabled}
-          >
-            {messageListVisibility.options.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.text}
-              </MenuItem>
-            ))}
-          </TextField>
+            helperText={messageListVisibility.help}
+          />
         )}
       />
     </Stack>
