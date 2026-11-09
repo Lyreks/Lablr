@@ -1,87 +1,37 @@
-# Welcome to React Router!
+# Lablr frontend
 
-A modern, production-ready template for building full-stack React applications using React Router.
+React Router v7 (framework mode) + Vite, MUI and MUI X Data Grid, TanStack Query, react-hook-form. Node 26+.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Running
 
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
+Start the backend on :8080 first (see the root README), then:
 
 ```bash
 npm install
+npm run dev        # http://localhost:5173
 ```
 
-### Development
+Vite proxies `/api`, `/oauth2`, `/login/oauth2` and `/logout` to the backend, so the session cookie is first-party and there's no CORS. Caddy does the same under Docker.
 
-Start the development server with HMR:
+| Script              | Does                       |
+|---------------------|----------------------------|
+| `npm run dev`       | Dev server with HMR        |
+| `npm test`          | Vitest unit tests          |
+| `npm run lint`      | ESLint                     |
+| `npm run typecheck` | Route typegen + `tsc`      |
+| `npm run build`     | Production build           |
 
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
+## Layout
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+app/
+  routes/   pages: /labels (grid), /labels/:labelId (detail/edit)
+  labels/   grid, form, dialogs, query hooks (api.ts), and the pure
+            naming/move/visibility/color logic, which has the tests
+  api/      fetch wrapper and error alert
+  auth/     current user and the sign-in gate
 ```
 
-## Styling
+## Errors
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+`apiFetch` throws an `ApiError` with the status, the backend's problem detail as the message, a `loginUrl` when signing in again would fix it, and the `X-Request-Id` the backend logged it under. Queries retry server and network errors but not 4xx. Query and mutation errors all go through `reportError` in `api/client.ts`, which only logs to the console for now.
