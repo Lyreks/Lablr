@@ -6,7 +6,8 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "test": "vitest run"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -28,7 +29,8 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "typescript": "^5.9.3",
-    "vite": "^8.0.3"
+    "vite": "^8.0.3",
+    "vitest": "^5.1.0"
   },
   "engines": {
     "node": ">=26"

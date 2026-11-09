@@ -42,4 +42,5 @@ cd backend
 cd frontend
 npm install
 npm run dev
+npm test                    # unit tests (Vitest)
 ```
