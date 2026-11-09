@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>21</java.version>
+		<java.version>25</java.version>
 		<google-api-services-gmail.version>v1-rev20261005-2.9.2</google-api-services-gmail.version>
 	</properties>
 	<dependencies>

@@ -5,7 +5,7 @@
 | Path                 | What                                                    |
 |----------------------|---------------------------------------------------------|
 | `frontend/`          | React Router (TypeScript, Vite) app, port 3000          |
-| `backend/`           | Java 21 Spring Boot (Maven) REST API, port 8080         |
+| `backend/`           | Java 25 Spring Boot (Maven) REST API, port 8080         |
 | `docker-compose.yml` | Runs both together for local development                |
 
 ## Run everything with Docker
@@ -30,7 +30,7 @@ npm install
 npm run dev
 ```
 
-### Backend (requires JDK 21+)
+### Backend (requires JDK 25+)
 ```bash
 cd backend
 ./mvnw spring-boot:run      # Windows: mvnw.cmd spring-boot:run
