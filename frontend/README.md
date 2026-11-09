@@ -29,7 +29,8 @@ app/
   labels/        query hooks (api.ts) and the pure naming/move/visibility/color
                  logic, which has the tests
     grid/        Data Grid and its column definitions, tree lines, drag-and-drop, Move dialog
-    form/        label form, parent and visibility pickers, create and delete dialogs
+    form/        label form, parent and visibility pickers, create dialog
+    detail/      detail page pieces: nested label tree, delete dialog
     chip/        label chip and its color picker
   components/    shared bits: logo, info tooltip, icons
   api/           fetch wrapper and error alert
