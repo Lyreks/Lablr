@@ -57,10 +57,10 @@ public class ApiExceptionHandler {
 	ProblemDetail handleNestedRename(NestedRenameException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(GmailErrors.status(ex.getCause()), ex.getMessage());
 		if (ex.notRestored().isEmpty()) {
-			problem.setTitle("Rename undone");
+			problem.setTitle("Changes undone");
 		}
 		else {
-			problem.setTitle("Rename partly undone");
+			problem.setTitle("Changes partly undone");
 			problem.setProperty("notRestored", ex.notRestored());
 		}
 		return problem;

@@ -1,25 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import {
-  Alert,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Chip, CircularProgress, Paper, Stack, Typography } from "@mui/material";
 
 import type { Route } from "./+types/label";
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
-import { type Label, useDeleteLabel, useLabel, useUpdateLabel } from "../labels/api";
+import { type Label, useLabel, useUpdateLabel } from "../labels/api";
 import { sameColor } from "../labels/colors";
 import { CreateLabelDialog } from "../labels/form/CreateLabelDialog";
+import { DeleteLabelDialog } from "../labels/form/DeleteLabelDialog";
 import { LabelForm } from "../labels/form/LabelForm";
 
 const FORM_ID = "edit-label-form";
@@ -44,7 +32,6 @@ export default function LabelDetail({ params }: Route.ComponentProps) {
 function LabelEditor({ label }: { label: Label }) {
   const navigate = useNavigate();
   const updateLabel = useUpdateLabel();
-  const deleteLabel = useDeleteLabel(label.id);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [creatingChild, setCreatingChild] = useState(false);
   const isSystem = label.type === "system";
@@ -66,7 +53,6 @@ function LabelEditor({ label }: { label: Label }) {
           <Alert severity="info">System labels are managed by Gmail and can't be changed.</Alert>
         )}
         {updateLabel.isError && <ApiErrorAlert error={updateLabel.error} />}
-        {deleteLabel.isError && <ApiErrorAlert error={deleteLabel.error} />}
         {updateLabel.isSuccess && <Alert severity="success">Label saved.</Alert>}
 
         <LabelForm
@@ -79,6 +65,8 @@ function LabelEditor({ label }: { label: Label }) {
             color: label.color,
           }}
           editingName={label.name}
+          // Clears "Label saved." (or an error) once you change something again
+          onEdit={updateLabel.reset}
           onSubmit={({ color, ...rest }) =>
             // `color: null` means remove, so only send it if it changed.
             updateLabel.mutate({
@@ -103,25 +91,12 @@ function LabelEditor({ label }: { label: Label }) {
         )}
       </Stack>
 
-      <Dialog open={confirmingDelete} onClose={() => setConfirmingDelete(false)}>
-        <DialogTitle>Delete “{label.name}”?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            The label is removed from Gmail. Messages that had it are kept.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmingDelete(false)}>Cancel</Button>
-          <Button
-            color="error"
-            variant="contained"
-            loading={deleteLabel.isPending}
-            onClick={() => deleteLabel.mutate(undefined, { onSuccess: () => navigate("/labels") })}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <DeleteLabelDialog
+        label={label}
+        open={confirmingDelete}
+        onClose={() => setConfirmingDelete(false)}
+        onDeleted={() => navigate("/labels")}
+      />
 
       <CreateLabelDialog
         open={creatingChild}

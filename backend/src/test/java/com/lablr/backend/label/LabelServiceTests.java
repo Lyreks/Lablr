@@ -341,12 +341,145 @@ class LabelServiceTests {
 
 		@Test
 		void sendsDeleteToGmail() throws Exception {
-			gmail.respondWith(204, "");
+			gmail.respondWith(200, """
+					{ "id": "TestLabel", "name": "Work" }
+					""");
+			gmail.thenRespondWith(200, """
+					{ "labels": [ { "id": "TestLabel", "name": "Work" }, { "id": "Other", "name": "Workshop" } ] }
+					""");
+			gmail.thenRespondWith(204, "");
 
-			labelService.delete(token, "TestLabel");
+			labelService.delete(token, "TestLabel", false);
 
+			assertThat(gmail.requests).hasSize(3);
 			assertThat(gmail.method).isEqualTo("DELETE");
 			assertThat(gmail.request.getUrl()).isEqualTo(LABEL_URL);
+		}
+
+		@Test
+		void movesNestedLabelsUpALevel() throws Exception {
+			respondWithClientsAndChildren();
+			gmail.thenRespondWith(200, "{}");
+			gmail.thenRespondWith(200, "{}");
+			gmail.thenRespondWith(204, "");
+
+			labelService.delete(token, "Clients", false);
+
+			List<RecordingTransport.Request> changes = gmail.requests.subList(2, gmail.requests.size());
+			assertThat(changes).extracting(RecordingTransport.Request::method).containsExactly("POST", "POST", "DELETE");
+			assertThat(changes).extracting((change) -> change.request().getUrl())
+				.containsExactly(LABELS_URL + "/Acme", LABELS_URL + "/Invoices", LABELS_URL + "/Clients");
+			JSONAssert.assertEquals("""
+					{ "name": "Work/Acme" }
+					""", changes.get(0).body(), true);
+			JSONAssert.assertEquals("""
+					{ "name": "Work/Acme/Invoices" }
+					""", changes.get(1).body(), true);
+		}
+
+		@Test
+		void movesNestedLabelsToTopLevelWhenDeletingTopLevelLabel() throws Exception {
+			gmail.respondWith(200, """
+					{ "id": "Work", "name": "Work" }
+					""");
+			gmail.thenRespondWith(200, """
+					{ "labels": [ { "id": "Work", "name": "Work" }, { "id": "Clients", "name": "Work/Clients" } ] }
+					""");
+			gmail.thenRespondWith(200, "{}");
+			gmail.thenRespondWith(204, "");
+
+			labelService.delete(token, "Work", false);
+
+			JSONAssert.assertEquals("""
+					{ "name": "Clients" }
+					""", gmail.requests.get(2).body(), true);
+		}
+
+		@Test
+		void changesNothingWhenAMovedUpNameIsTaken() {
+			gmail.respondWith(200, """
+					{ "id": "Clients", "name": "Work/Clients" }
+					""");
+			gmail.thenRespondWith(200, """
+					{
+					  "labels": [
+					    { "id": "Clients", "name": "Work/Clients" },
+					    { "id": "Acme", "name": "Work/Clients/Acme" },
+					    { "id": "OtherAcme", "name": "Work/Acme" }
+					  ]
+					}
+					""");
+
+			assertThatExceptionOfType(ResponseStatusException.class)
+				.isThrownBy(() -> labelService.delete(token, "Clients", false))
+				.satisfies((ex) -> assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+			assertThat(gmail.requests).extracting(RecordingTransport.Request::method).containsExactly("GET", "GET");
+		}
+
+		@Test
+		void movesNestedLabelsBackWhenDeleteFails() {
+			respondWithClientsAndChildren();
+			gmail.thenRespondWith(200, "{}");
+			gmail.thenRespondWith(200, "{}");
+			gmail.thenRespondWith(500, """
+					{ "error": { "code": 500, "message": "Backend Error" } }
+					""");
+			gmail.thenRespondWith(200, "{}");
+
+			assertThatExceptionOfType(NestedRenameException.class)
+				.isThrownBy(() -> labelService.delete(token, "Clients", false))
+				.withMessage("Couldn't delete “Work/Clients”: Gmail had a temporary problem. All changes were undone.");
+
+			List<RecordingTransport.Request> undo = gmail.requests.subList(5, gmail.requests.size());
+			assertThat(undo).extracting((request) -> request.request().getUrl())
+				.containsExactly(LABELS_URL + "/Invoices", LABELS_URL + "/Acme");
+		}
+
+		@Test
+		void deletesNestedLabelsDeepestFirstWhenAsked() throws Exception {
+			respondWithClientsAndChildren();
+			gmail.thenRespondWith(204, "");
+
+			labelService.delete(token, "Clients", true);
+
+			assertThat(gmail.requests.subList(2, gmail.requests.size()))
+				.extracting((request) -> request.method() + " " + request.request().getUrl())
+				.containsExactly("DELETE " + LABELS_URL + "/Invoices", "DELETE " + LABELS_URL + "/Acme",
+						"DELETE " + LABELS_URL + "/Clients");
+		}
+
+		@Test
+		void reportsWhatWasDeletedWhenDeletingNestedLabelsFails() {
+			respondWithClientsAndChildren();
+			gmail.thenRespondWith(204, "");
+			gmail.thenRespondWith(500, """
+					{ "error": { "code": 500, "message": "Backend Error" } }
+					""");
+
+			assertThatExceptionOfType(ResponseStatusException.class)
+				.isThrownBy(() -> labelService.delete(token, "Clients", true))
+				.satisfies((ex) -> {
+					assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
+					assertThat(ex.getReason()).isEqualTo(
+							"Couldn't delete “Work/Clients/Acme”: Gmail had a temporary problem. Already deleted: “Work/Clients/Acme/Invoices”.");
+				});
+		}
+
+		// Deleting "Work/Clients", which has "Acme" and "Acme/Invoices" inside it.
+		private void respondWithClientsAndChildren() {
+			gmail.respondWith(200, """
+					{ "id": "Clients", "name": "Work/Clients" }
+					""");
+			gmail.thenRespondWith(200, """
+					{
+					  "labels": [
+					    { "id": "Work", "name": "Work" },
+					    { "id": "Clients", "name": "Work/Clients" },
+					    { "id": "Acme", "name": "Work/Clients/Acme" },
+					    { "id": "Invoices", "name": "Work/Clients/Acme/Invoices" }
+					  ]
+					}
+					""");
 		}
 
 	}

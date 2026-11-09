@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link } from "react-router";
 import { Link as MuiLink, MenuItem, Stack, TextField } from "@mui/material";
@@ -29,6 +30,8 @@ type LabelFormProps = {
   editingName?: string;
   disabled?: boolean;
   onSubmit: (input: LabelInput) => void;
+  // Called whenever a field changes
+  onEdit?: () => void;
 };
 
 export function LabelForm({
@@ -37,12 +40,17 @@ export function LabelForm({
   editingName,
   disabled,
   onSubmit,
+  onEdit,
 }: LabelFormProps) {
   const labels = useLabels();
   const { parent, leaf } = splitName(defaultValues.name);
-  const { control, handleSubmit } = useForm<FormValues>({
+  const { control, handleSubmit, subscribe } = useForm<FormValues>({
     defaultValues: { ...defaultValues, parent, leaf },
   });
+  useEffect(
+    () => subscribe({ formState: { values: true }, callback: () => onEdit?.() }),
+    [subscribe, onEdit],
+  );
   const previewName = useWatch({ control, name: "leaf" }).trim() || "Label";
   const pickedParent = useWatch({ control, name: "parent" });
   const restriction = sidebarRestrictionLookup(labels.data ?? [])(joinName(pickedParent, previewName));

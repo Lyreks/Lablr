@@ -96,7 +96,9 @@ export function useUpdateLabel() {
 export function useDeleteLabel(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => apiFetch<void>(labelPath(id), { method: "DELETE" }),
+    // Nested labels move up a level unless deleteNested is set
+    mutationFn: ({ deleteNested = false }: { deleteNested?: boolean } = {}) =>
+      apiFetch<void>(`${labelPath(id)}?deleteNested=${deleteNested}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: labelKeys.detail(id) });
       return queryClient.invalidateQueries({ queryKey: labelKeys.all });

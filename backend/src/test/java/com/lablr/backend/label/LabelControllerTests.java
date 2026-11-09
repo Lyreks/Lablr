@@ -225,7 +225,15 @@ class LabelControllerTests {
 			mvc.perform(delete(LABEL).with(oidcLogin()).with(csrf()))
 				.andExpect(status().isNoContent());
 
-			then(labelService).should().delete(any(), eq("TestLabel"));
+			then(labelService).should().delete(any(), eq("TestLabel"), eq(false));
+		}
+
+		@Test
+		void passesDeleteNested() throws Exception {
+			mvc.perform(delete(LABEL).param("deleteNested", "true").with(oidcLogin()).with(csrf()))
+				.andExpect(status().isNoContent());
+
+			then(labelService).should().delete(any(), eq("TestLabel"), eq(true));
 		}
 
 	}
@@ -368,14 +376,14 @@ class LabelControllerTests {
 		@Test
 		void reportsRolledBackRename() throws Exception {
 			given(labelService.update(any(), eq("TestLabel"), any()))
-				.willThrow(new NestedRenameException(new Rename("Work/A", "Home/A"), "Gmail couldn't be reached",
+				.willThrow(new NestedRenameException(new Rename("Work/A", "Home/A").describe(), "Gmail couldn't be reached",
 						List.of(new Rename("Work", "Home")), new IOException("Connection reset")));
 
 			mvc.perform(patch(LABEL).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
 					{ "name": "Home" }
 					"""))
 				.andExpect(status().isBadGateway())
-				.andExpect(jsonPath("$.title").value("Rename partly undone"))
+				.andExpect(jsonPath("$.title").value("Changes partly undone"))
 				.andExpect(jsonPath("$.detail").value(
 						"Couldn't move “Work/A” to “Home/A”: Gmail couldn't be reached. Some changes couldn't be undone. Fix these in Gmail: “Home” (was “Work”)."))
 				.andExpect(jsonPath("$.notRestored[0].from").value("Work"))
