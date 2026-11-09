@@ -30,7 +30,7 @@ app/
                  logic, which has the tests
     grid/        Data Grid, its columns and toolbar, drag-and-drop, Move dialog
     form/        label form, create dialog
-    detail/      detail page pieces: nested label tree, delete dialog
+    detail/      detail page pieces: breadcrumbs, nested label tree, delete dialog
     ui/          pieces shared by the above: label chip, color picker, parent and
                  visibility pickers, tree lines
   components/    shared bits: logo, info tooltip, icons

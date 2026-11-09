@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   Alert,
   Box,
-  Breadcrumbs,
   Button,
   Chip,
   CircularProgress,
-  Link as MuiLink,
   Paper,
   Stack,
   Typography,
@@ -15,9 +13,10 @@ import {
 
 import type { Route } from "./+types/label";
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
-import { type Label, labelPagePath, useLabel, useLabels, useUpdateLabel } from "../labels/api";
+import { type Label, useLabel, useUpdateLabel } from "../labels/api";
 import { sameColor } from "../labels/colors";
 import { DeleteLabelDialog } from "../labels/detail/DeleteLabelDialog";
+import { LabelBreadcrumbs } from "../labels/detail/LabelBreadcrumbs";
 import { NestedLabels } from "../labels/detail/NestedLabels";
 import { CreateLabelDialog } from "../labels/form/CreateLabelDialog";
 import { LabelForm } from "../labels/form/LabelForm";
@@ -34,43 +33,10 @@ export default function LabelDetail({ params }: Route.ComponentProps) {
   }
   return (
     <Stack spacing={3}>
-      <Title />
+      <LabelBreadcrumbs />
       {label.isPending && <CircularProgress sx={{ alignSelf: "center" }} />}
       {label.isError && <ApiErrorAlert error={label.error} />}
     </Stack>
-  );
-}
-
-// Same spot and size as the Labels page heading. "Labels / Work / Clients / Acme", where each
-// ancestor links to its page if it exists as a label (Gmail allows gaps in the chain).
-function Title({ name }: { name?: string }) {
-  const labels = useLabels();
-  const parts = name?.split("/") ?? [];
-  const crumb = { variant: "h5", color: "text.secondary" } as const;
-
-  return (
-    <Breadcrumbs sx={{ typography: "h5" }}>
-      <MuiLink component={Link} to="/labels" underline="hover" {...crumb}>
-        Labels
-      </MuiLink>
-      {parts.slice(0, -1).map((part, i) => {
-        const ancestor = labels.data?.find((label) => label.name === parts.slice(0, i + 1).join("/"));
-        return ancestor ? (
-          <MuiLink key={i} component={Link} to={labelPagePath(ancestor)} underline="hover" {...crumb}>
-            {part}
-          </MuiLink>
-        ) : (
-          <Typography key={i} {...crumb}>
-            {part}
-          </Typography>
-        );
-      })}
-      {name && (
-        <Typography variant="h5" component="h1" title={name}>
-          {parts.at(-1)}
-        </Typography>
-      )}
-    </Breadcrumbs>
   );
 }
 
@@ -85,7 +51,7 @@ function LabelEditor({ label }: { label: Label }) {
     <Stack spacing={3}>
       <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-          <Title name={label.name} />
+          <LabelBreadcrumbs name={label.name} />
           <Chip label={label.type} size="small" variant={isSystem ? "outlined" : "filled"} />
         </Stack>
         {!isSystem && (
