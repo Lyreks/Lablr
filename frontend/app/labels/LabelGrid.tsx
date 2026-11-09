@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Box,
   Button,
@@ -13,6 +14,7 @@ import {
 import {
   DataGrid,
   GRID_CHECKBOX_SELECTION_COL_DEF,
+  gridClasses,
   type GridColDef,
   type GridColumnVisibilityModel,
   type GridFilterItem,
@@ -65,12 +67,19 @@ function storedPageSize() {
 
 const NOTHING_SELECTED: GridRowSelectionModel = { type: "include", ids: new Set() };
 
+// Clicking these shouldn't open the label. The grid already ignores the checkbox column and
+// portal clicks (select menus).
+const ROW_CONTROLS = 'a, button, [role="button"], [role="combobox"], [draggable="true"]';
+
+const labelPath = (label: Label) => `/labels/${encodeURIComponent(label.id)}`;
+
 type LabelGridProps = {
   labels: Label[];
   onChange: (label: Label, input: Partial<LabelInput>) => void;
 };
 
 export function LabelGrid({ labels, onChange }: LabelGridProps) {
+  const navigate = useNavigate();
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>(() => ({
     page: 0,
     pageSize: storedPageSize(),
@@ -214,7 +223,7 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
           const chip = {
             name: showTree && node ? node.relativeName : row.name,
             color: row.color,
-            to: `/labels/${encodeURIComponent(row.id)}`,
+            to: labelPath(row),
             title: row.name,
           };
           return (
@@ -272,6 +281,11 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         columns={columns}
         autoHeight
         disableRowSelectionOnClick
+        onRowClick={({ row }, event) => {
+          if (!(event.target as Element).closest(ROW_CONTROLS)) {
+            navigate(labelPath(row));
+          }
+        }}
         pageSizeOptions={pageSizeOptions}
         paginationModel={paginationModel}
         onPaginationModelChange={(model) => {
@@ -291,7 +305,7 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         onRowSelectionModelChange={setRowSelectionModel}
         getRowClassName={({ row }) => drag.rowClassName(row)}
         slotProps={{ row: drag.rowProps }}
-        sx={drag.sx}
+        sx={[drag.sx, { [`& .${gridClasses.row}`]: { cursor: "pointer" } }]}
       />
       <MoveLabelsDialog
         key={moveRequest.count}
