@@ -3,7 +3,7 @@ import { GRID_CHECKBOX_SELECTION_COL_DEF, type GridColDef } from "@mui/x-data-gr
 
 import { DragIndicatorIcon } from "../../components/icons";
 import { InfoTooltip } from "../../components/InfoTooltip";
-import type { Label, LabelInput } from "../api";
+import { type Label, type LabelInput, labelPagePath } from "../api";
 import { LabelChip } from "../ui/LabelChip";
 import { VisibilitySelect } from "../ui/VisibilitySelect";
 import { compareNames, labelTree, type TreeNode } from "../names";
@@ -20,8 +20,6 @@ import type { useLabelDragAndDrop } from "./useLabelDragAndDrop";
 
 export const DRAG_FIELD = "__drag__";
 const GRIP_WIDTH = 24;
-
-export const labelPath = (label: Label) => `/labels/${encodeURIComponent(label.id)}`;
 
 type ChangeLabel = (label: Label, input: Partial<LabelInput>) => void;
 
@@ -90,7 +88,7 @@ function nameColumn(tree: Map<string, TreeNode>, showTree: boolean, onChange: Ch
       const chip = {
         name: showTree && node ? node.relativeName : row.name,
         color: row.color,
-        to: labelPath(row),
+        to: labelPagePath(row),
         title: row.name,
       };
       return (

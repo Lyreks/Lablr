@@ -13,8 +13,8 @@ import {
 } from "@mui/x-data-grid";
 
 import { readStored, writeStored } from "../../storage";
-import type { Label, LabelInput } from "../api";
-import { DRAG_FIELD, labelColumns, labelPath } from "./columns";
+import { type Label, type LabelInput, labelPagePath } from "../api";
+import { DRAG_FIELD, labelColumns } from "./columns";
 import { LabelGridToolbar } from "./LabelGridToolbar";
 import { MoveLabelsDialog } from "./MoveLabelsDialog";
 import { TOP_LEVEL } from "../names";
@@ -115,7 +115,7 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         disableRowSelectionOnClick
         onRowClick={({ row }, event) => {
           if (!(event.target as Element).closest(ROW_CONTROLS)) {
-            navigate(labelPath(row));
+            navigate(labelPagePath(row));
           }
         }}
         pageSizeOptions={pageSizeOptions}

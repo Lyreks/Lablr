@@ -1,3 +1,4 @@
+import { href } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiFetch } from "../api/client";
@@ -30,7 +31,10 @@ const labelKeys = {
   detail: (id: string) => ["labels", id] as const,
 };
 
-const labelPath = (id: string) => `/api/labels/${encodeURIComponent(id)}`;
+const apiPath = (id: string) => `/api/labels/${encodeURIComponent(id)}`;
+
+export const labelPagePath = (label: Pick<Label, "id">) =>
+  href("/labels/:labelId", { labelId: encodeURIComponent(label.id) });
 
 export function useLabels() {
   return useQuery({
@@ -42,7 +46,7 @@ export function useLabels() {
 export function useLabel(id: string) {
   return useQuery({
     queryKey: labelKeys.detail(id),
-    queryFn: () => apiFetch<Label>(labelPath(id)),
+    queryFn: () => apiFetch<Label>(apiPath(id)),
   });
 }
 
@@ -62,13 +66,13 @@ export function useUpdateLabel() {
     mutationFn: async ({ id, input }: { id: string; input: Partial<LabelInput> }) => {
       const { color, ...rest } = input;
       if (color !== null) {
-        return apiFetch<Label>(labelPath(id), { method: "PATCH", body: JSON.stringify(input) });
+        return apiFetch<Label>(apiPath(id), { method: "PATCH", body: JSON.stringify(input) });
       }
       // PATCH can't clear a color.
-      const uncolored = await apiFetch<Label>(`${labelPath(id)}/color`, { method: "DELETE" });
+      const uncolored = await apiFetch<Label>(`${apiPath(id)}/color`, { method: "DELETE" });
       return Object.keys(rest).length === 0
         ? uncolored
-        : apiFetch<Label>(labelPath(id), { method: "PATCH", body: JSON.stringify(rest) });
+        : apiFetch<Label>(apiPath(id), { method: "PATCH", body: JSON.stringify(rest) });
     },
     // Optimistic update
     onMutate: async ({ id, input }) => {
@@ -98,7 +102,7 @@ export function useDeleteLabel(id: string) {
   return useMutation({
     // Nested labels move up a level unless deleteNested is set
     mutationFn: ({ deleteNested = false }: { deleteNested?: boolean } = {}) =>
-      apiFetch<void>(`${labelPath(id)}?deleteNested=${deleteNested}`, { method: "DELETE" }),
+      apiFetch<void>(`${apiPath(id)}?deleteNested=${deleteNested}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: labelKeys.detail(id) });
       return queryClient.invalidateQueries({ queryKey: labelKeys.all });

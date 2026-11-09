@@ -15,12 +15,11 @@ import {
 
 import type { Route } from "./+types/label";
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
-import { type Label, useLabel, useLabels, useUpdateLabel } from "../labels/api";
+import { type Label, labelPagePath, useLabel, useLabels, useUpdateLabel } from "../labels/api";
 import { sameColor } from "../labels/colors";
 import { DeleteLabelDialog } from "../labels/detail/DeleteLabelDialog";
 import { NestedLabels } from "../labels/detail/NestedLabels";
 import { CreateLabelDialog } from "../labels/form/CreateLabelDialog";
-import { labelPath } from "../labels/grid/columns";
 import { LabelForm } from "../labels/form/LabelForm";
 
 const FORM_ID = "edit-label-form";
@@ -57,7 +56,7 @@ function Title({ name }: { name?: string }) {
       {parts.slice(0, -1).map((part, i) => {
         const ancestor = labels.data?.find((label) => label.name === parts.slice(0, i + 1).join("/"));
         return ancestor ? (
-          <MuiLink key={i} component={Link} to={labelPath(ancestor)} underline="hover" {...crumb}>
+          <MuiLink key={i} component={Link} to={labelPagePath(ancestor)} underline="hover" {...crumb}>
             {part}
           </MuiLink>
         ) : (

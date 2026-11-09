@@ -1,9 +1,8 @@
 import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 
 import { ApiErrorAlert } from "../../api/ApiErrorAlert";
-import { type Label, useLabels } from "../api";
+import { type Label, labelPagePath, useLabels } from "../api";
 import { LabelChip } from "../ui/LabelChip";
-import { labelPath } from "../grid/columns";
 import { TreeGuides } from "../ui/TreeGuides";
 import { compareNames, isSameOrNestedUnder, labelTree } from "../names";
 
@@ -47,7 +46,7 @@ export function NestedLabels({ label, onAdd }: NestedLabelsProps) {
                 <LabelChip
                   name={node?.relativeName ?? child.name}
                   color={child.color}
-                  to={labelPath(child)}
+                  to={labelPagePath(child)}
                   title={child.name}
                 />
               </Box>

@@ -3,7 +3,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link } from "react-router";
 import { Link as MuiLink, Stack, TextField } from "@mui/material";
 
-import { type LabelInput, useLabels } from "../api";
+import { type LabelInput, labelPagePath, useLabels } from "../api";
 import { LabelChip } from "../ui/LabelChip";
 import { joinName, splitName, userLabelNames } from "../names";
 import { ParentSelect } from "../ui/ParentSelect";
@@ -145,7 +145,7 @@ export function LabelForm({
                   {restrictingLabel && (
                     <>
                       {" "}
-                      <MuiLink component={Link} to={`/labels/${encodeURIComponent(restrictingLabel.id)}`}>
+                      <MuiLink component={Link} to={labelPagePath(restrictingLabel)}>
                         Go to “{restrictingLabel.name}”
                       </MuiLink>
                     </>
