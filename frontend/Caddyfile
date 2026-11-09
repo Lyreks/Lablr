@@ -1,0 +1,14 @@
+# Docker's single origin on :3000, same as the Vite dev proxy. Host header is passed through so the
+# OAuth redirect URI points back here.
+:80 {
+	@backend path /api/* /oauth2/* /login/oauth2/* /logout
+	handle @backend {
+		reverse_proxy backend:8080
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

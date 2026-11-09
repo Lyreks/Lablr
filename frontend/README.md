@@ -11,7 +11,9 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-Vite proxies `/api`, `/oauth2`, `/login/oauth2` and `/logout` to the backend, so the session cookie is first-party and there's no CORS. Caddy does the same under Docker.
+Vite proxies `/api`, `/oauth2`, `/login/oauth2` and `/logout` to the backend, so the session cookie is first-party and there's no CORS.
+
+It's an SPA (`ssr: false`), since all data loads in the browser anyway. Under Docker the image is just Caddy serving `build/client` and doing the same proxying (see `Caddyfile`).
 
 | Script              | Does                       |
 |---------------------|----------------------------|

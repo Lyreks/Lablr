@@ -4,10 +4,10 @@
 
 | Path                 | What                                                    |
 |----------------------|---------------------------------------------------------|
-| `frontend/`          | React Router (TypeScript, Vite) app, port 3000          |
+| `frontend/`          | React Router (TypeScript, Vite) SPA                     |
 | `backend/`           | Java 25 Spring Boot (Maven) REST API, port 8080         |
 | `docker-compose.yml` | Runs both together for local development                |
-| `Caddyfile`          | Proxy that puts both on one origin under Docker         |
+| `frontend/Caddyfile` | Serves the SPA and proxies the backend under Docker     |
 
 The browser only ever talks to one origin. A proxy sends `/api/*`, `/oauth2/*`, `/login/oauth2/*` and `/logout` to the backend and everything else to the frontend, so the session cookie is first-party and there's no CORS. That proxy is Vite's dev server when running directly, and Caddy under Docker.
 

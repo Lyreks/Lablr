@@ -1,17 +1,4 @@
 services:
-  # Entry point (see Caddyfile). Waits until both apps are healthy.
-  proxy:
-    image: caddy:2.10-alpine
-    ports:
-      - "3000:80"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
-
   backend:
     build: ./backend
     env_file: .env
@@ -24,13 +11,11 @@ services:
       retries: 10
       start_period: 20s
 
+  # The app on :3000 (see frontend/Caddyfile). Waits for the backend so the first request works.
   frontend:
     build: ./frontend
-    expose:
-      - "3000"
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
