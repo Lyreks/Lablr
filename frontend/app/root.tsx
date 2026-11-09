@@ -15,10 +15,10 @@ import {
   ThemeProvider,
   Typography,
 } from "@mui/material";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import type { Route } from "./+types/root";
-import { ApiError } from "./api/client";
+import { ApiError, reportError } from "./api/client";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -61,12 +61,18 @@ const theme = createTheme({
   typography: { fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif' },
 });
 
+// No point retrying a 4xx
 const retryUnlessClientError = (failureCount: number, error: Error) =>
-  !(error instanceof ApiError && error.status < 500) && failureCount < 2;
+  !(error instanceof ApiError && error.isClientError) && failureCount < 2;
 
 export default function App() {
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { retry: retryUnlessClientError } } }),
+    () =>
+      new QueryClient({
+        queryCache: new QueryCache({ onError: reportError }),
+        mutationCache: new MutationCache({ onError: reportError }),
+        defaultOptions: { queries: { retry: retryUnlessClientError } },
+      }),
   );
 
   return (
