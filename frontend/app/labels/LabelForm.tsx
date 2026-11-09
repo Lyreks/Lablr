@@ -4,7 +4,7 @@ import { Link as MuiLink, MenuItem, Stack, TextField } from "@mui/material";
 
 import { type LabelInput, useLabels } from "./api";
 import { LabelChip } from "./LabelChip";
-import { EditableLabelChip } from "./LabelColorPicker";
+import { EditableLabelChip } from "./EditableLabelChip";
 import { joinName, splitName, userLabelNames } from "./names";
 import { ParentSelect } from "./ParentSelect";
 import {

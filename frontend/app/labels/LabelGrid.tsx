@@ -27,7 +27,7 @@ import type { Label, LabelInput } from "./api";
 import { DragIndicatorIcon } from "./icons";
 import { InfoTooltip } from "./InfoTooltip";
 import { LabelChip } from "./LabelChip";
-import { EditableLabelChip } from "./LabelColorPicker";
+import { EditableLabelChip } from "./EditableLabelChip";
 import { MoveLabelsDialog } from "./MoveLabelsDialog";
 import { compareNames, labelTree, TOP_LEVEL } from "./names";
 import { TreeGuides } from "./TreeGuides";
