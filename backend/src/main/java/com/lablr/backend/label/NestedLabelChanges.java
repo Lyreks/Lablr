@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.lablr.backend.gmail.GmailErrors;
-import com.lablr.backend.label.NestedRenameException.Rename;
+import com.lablr.backend.label.NestedChangeException.Rename;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ class NestedLabelChanges {
 			logger.debug("Deleting label {} \"{}\" failed, moving its {} nested labels back", label.getId(),
 					label.getName(), renames.size());
 			logger.warn("Deleting label {} failed, moving its nested labels back", label.getId(), ex);
-			throw new NestedRenameException("delete “%s”".formatted(label.getName()), GmailErrors.reason(ex),
+			throw new NestedChangeException("delete “%s”".formatted(label.getName()), reason(ex),
 					undo(labels, renames), ex);
 		}
 		logger.debug("Deleted label {} \"{}\" after moving {} nested labels", label.getId(), label.getName(),
@@ -122,7 +122,7 @@ class NestedLabelChanges {
 						: "Already deleted: " + deleted.stream().map("“%s”"::formatted).collect(Collectors.joining(", "))
 								+ ".";
 				throw new ResponseStatusException(GmailErrors.status(ex), "Couldn't delete “%s”: %s. %s"
-					.formatted(each.getName(), stripPeriod(GmailErrors.reason(ex)), gone), ex);
+					.formatted(each.getName(), reason(ex), gone), ex);
 			}
 		}
 	}
@@ -179,7 +179,7 @@ class NestedLabelChanges {
 				else {
 					logger.debug("Rollback incomplete, {} labels left changed: {}", notRestored.size(), notRestored);
 				}
-				throw new NestedRenameException(rename.names().describe(), GmailErrors.reason(ex), notRestored, ex);
+				throw new NestedChangeException(rename.names().describe(), reason(ex), notRestored, ex);
 			}
 		}
 	}
@@ -228,8 +228,10 @@ class NestedLabelChanges {
 		return (slash < 0) ? "" : name.substring(0, slash);
 	}
 
-	private static String stripPeriod(String text) {
-		return text.endsWith(".") ? text.substring(0, text.length() - 1) : text;
+	// Goes mid-sentence, so without Gmail's trailing period
+	private static String reason(IOException ex) {
+		String reason = GmailErrors.reason(ex);
+		return reason.endsWith(".") ? reason.substring(0, reason.length() - 1) : reason;
 	}
 
 	private record ChildRename(String id, Rename names) {

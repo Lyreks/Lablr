@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
  * A change that renames nested labels (a rename, or a delete that moves the children up) failed
  * partway and was rolled back. {@link #notRestored()} is whatever the rollback couldn't fix.
  */
-public class NestedRenameException extends RuntimeException {
+public class NestedChangeException extends RuntimeException {
 
 	private final List<Rename> notRestored;
 
-	// failed completes "Couldn't …", e.g. move “A” to “B”
-	NestedRenameException(String failed, String reason, List<Rename> notRestored, IOException cause) {
+	// "Couldn't {failed}: {reason}.", e.g. failed = move “A” to “B”
+	NestedChangeException(String failed, String reason, List<Rename> notRestored, IOException cause) {
 		super(message(failed, reason, notRestored), cause);
 		this.notRestored = List.copyOf(notRestored);
 	}
@@ -28,17 +28,13 @@ public class NestedRenameException extends RuntimeException {
 	}
 
 	private static String message(String failed, String reason, List<Rename> notRestored) {
-		String start = "Couldn't %s: %s.".formatted(failed, stripPeriod(reason));
+		String start = "Couldn't %s: %s.".formatted(failed, reason);
 		if (notRestored.isEmpty()) {
 			return start + " All changes were undone.";
 		}
 		return start + " Some changes couldn't be undone. Fix these in Gmail: " + notRestored.stream()
 			.map((rename) -> "“%s” (was “%s”)".formatted(rename.to(), rename.from()))
 			.collect(Collectors.joining(", ")) + ".";
-	}
-
-	private static String stripPeriod(String reason) {
-		return reason.endsWith(".") ? reason.substring(0, reason.length() - 1) : reason;
 	}
 
 	public record Rename(String from, String to) {

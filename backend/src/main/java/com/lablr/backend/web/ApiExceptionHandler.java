@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.lablr.backend.gmail.ExpiredGmailTokenException;
 import com.lablr.backend.gmail.GmailErrors;
 import com.lablr.backend.gmail.MissingGmailScopeException;
-import com.lablr.backend.label.NestedRenameException;
+import com.lablr.backend.label.NestedChangeException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,8 +53,8 @@ public class ApiExceptionHandler {
 	}
 
 	// Already logged in LabelService
-	@ExceptionHandler(NestedRenameException.class)
-	ProblemDetail handleNestedRename(NestedRenameException ex) {
+	@ExceptionHandler(NestedChangeException.class)
+	ProblemDetail handleNestedChange(NestedChangeException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(GmailErrors.status(ex.getCause()), ex.getMessage());
 		if (ex.notRestored().isEmpty()) {
 			problem.setTitle("Changes undone");

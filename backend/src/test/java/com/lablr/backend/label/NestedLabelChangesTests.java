@@ -97,7 +97,7 @@ class NestedLabelChangesTests {
 			respondToRenameWithFailingChild();
 			gmail.thenRespondWith(200, "{}");
 
-			assertThatExceptionOfType(NestedRenameException.class)
+			assertThatExceptionOfType(NestedChangeException.class)
 				.isThrownBy(() -> labelService.update(token, "Clients",
 						new UpdateLabelRequest("Clients", null, null, null)))
 				.satisfies((ex) -> {
@@ -129,13 +129,13 @@ class NestedLabelChangesTests {
 			respondToRenameWithFailingChild();
 			// Gmail stays down, so neither undo works.
 
-			assertThatExceptionOfType(NestedRenameException.class)
+			assertThatExceptionOfType(NestedChangeException.class)
 				.isThrownBy(() -> labelService.update(token, "Clients",
 						new UpdateLabelRequest("Clients", null, null, null)))
 				.satisfies((ex) -> {
 					assertThat(ex.notRestored()).containsExactly(
-							new NestedRenameException.Rename("Work/Clients/Acme", "Clients/Acme"),
-							new NestedRenameException.Rename("Work/Clients", "Clients"));
+							new NestedChangeException.Rename("Work/Clients/Acme", "Clients/Acme"),
+							new NestedChangeException.Rename("Work/Clients", "Clients"));
 					assertThat(ex.getMessage()).endsWith(
 							"Some changes couldn't be undone. Fix these in Gmail: “Clients/Acme” (was “Work/Clients/Acme”), “Clients” (was “Work/Clients”).");
 				});
@@ -244,7 +244,7 @@ class NestedLabelChangesTests {
 					""");
 			gmail.thenRespondWith(200, "{}");
 
-			assertThatExceptionOfType(NestedRenameException.class)
+			assertThatExceptionOfType(NestedChangeException.class)
 				.isThrownBy(() -> labelService.delete(token, "Clients", false))
 				.withMessage("Couldn't delete “Work/Clients”: Gmail had a temporary problem. All changes were undone.");
 

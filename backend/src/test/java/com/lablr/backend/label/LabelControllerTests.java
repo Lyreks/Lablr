@@ -11,7 +11,7 @@ import com.google.api.client.http.HttpResponseException;
 import com.lablr.backend.config.SecurityConfiguration;
 import com.lablr.backend.gmail.ExpiredGmailTokenException;
 import com.lablr.backend.gmail.MissingGmailScopeException;
-import com.lablr.backend.label.NestedRenameException.Rename;
+import com.lablr.backend.label.NestedChangeException.Rename;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -376,7 +376,7 @@ class LabelControllerTests {
 		@Test
 		void reportsRolledBackRename() throws Exception {
 			given(labelService.update(any(), eq("TestLabel"), any()))
-				.willThrow(new NestedRenameException(new Rename("Work/A", "Home/A").describe(), "Gmail couldn't be reached",
+				.willThrow(new NestedChangeException(new Rename("Work/A", "Home/A").describe(), "Gmail couldn't be reached",
 						List.of(new Rename("Work", "Home")), new IOException("Connection reset")));
 
 			mvc.perform(patch(LABEL).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
