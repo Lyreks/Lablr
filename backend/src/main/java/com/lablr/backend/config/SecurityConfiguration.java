@@ -6,7 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
@@ -35,6 +37,12 @@ public class SecurityConfiguration {
 			.requestCache(cache -> cache.disable())
 			.csrf(csrf -> csrf.spa());
 		return http.build();
+	}
+
+	// Keep Google tokens in the session so they go away on logout.
+	@Bean
+	OAuth2AuthorizedClientRepository authorizedClientRepository() {
+		return new HttpSessionOAuth2AuthorizedClientRepository();
 	}
 
 }
