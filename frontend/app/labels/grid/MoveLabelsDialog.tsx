@@ -14,7 +14,7 @@ import {
 import { ApiErrorAlert } from "../../api/ApiErrorAlert";
 import { type Label, useUpdateLabel } from "../api";
 import { canCarryOut, planMove, TOP_LEVEL, userLabelNames } from "../names";
-import { ParentSelect } from "../form/ParentSelect";
+import { ParentSelect } from "../ui/ParentSelect";
 
 type MoveLabelsDialogProps = {
   open: boolean;

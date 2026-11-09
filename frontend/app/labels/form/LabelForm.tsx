@@ -4,10 +4,10 @@ import { Link } from "react-router";
 import { Link as MuiLink, Stack, TextField } from "@mui/material";
 
 import { type LabelInput, useLabels } from "../api";
-import { LabelChip } from "../chip/LabelChip";
+import { LabelChip } from "../ui/LabelChip";
 import { joinName, splitName, userLabelNames } from "../names";
-import { ParentSelect } from "./ParentSelect";
-import { VisibilitySelect } from "./VisibilitySelect";
+import { ParentSelect } from "../ui/ParentSelect";
+import { VisibilitySelect } from "../ui/VisibilitySelect";
 import {
   sidebarRestrictionLookup,
   sidebarRestrictionText,

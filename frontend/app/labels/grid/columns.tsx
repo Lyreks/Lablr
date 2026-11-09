@@ -4,8 +4,8 @@ import { GRID_CHECKBOX_SELECTION_COL_DEF, type GridColDef } from "@mui/x-data-gr
 import { DragIndicatorIcon } from "../../components/icons";
 import { InfoTooltip } from "../../components/InfoTooltip";
 import type { Label, LabelInput } from "../api";
-import { LabelChip } from "../chip/LabelChip";
-import { VisibilitySelect } from "../form/VisibilitySelect";
+import { LabelChip } from "../ui/LabelChip";
+import { VisibilitySelect } from "../ui/VisibilitySelect";
 import { compareNames, labelTree, type TreeNode } from "../names";
 import {
   labelListVisibility,
@@ -15,7 +15,7 @@ import {
   sidebarRestrictionLookup,
   sidebarRestrictionText,
 } from "../visibility";
-import { TreeGuides } from "./TreeGuides";
+import { TreeGuides } from "../ui/TreeGuides";
 import type { useLabelDragAndDrop } from "./useLabelDragAndDrop";
 
 export const DRAG_FIELD = "__drag__";

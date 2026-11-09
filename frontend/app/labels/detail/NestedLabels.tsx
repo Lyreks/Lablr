@@ -2,9 +2,9 @@ import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 
 import { ApiErrorAlert } from "../../api/ApiErrorAlert";
 import { type Label, useLabels } from "../api";
-import { LabelChip } from "../chip/LabelChip";
+import { LabelChip } from "../ui/LabelChip";
 import { labelPath } from "../grid/columns";
-import { TreeGuides } from "../grid/TreeGuides";
+import { TreeGuides } from "../ui/TreeGuides";
 import { compareNames, isSameOrNestedUnder, labelTree } from "../names";
 
 type NestedLabelsProps = {
