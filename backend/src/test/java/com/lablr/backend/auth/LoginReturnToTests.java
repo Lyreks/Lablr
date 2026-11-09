@@ -1,4 +1,4 @@
-package com.lablr.backend.config;
+package com.lablr.backend.auth;
 
 import java.io.IOException;
 

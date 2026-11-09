@@ -8,7 +8,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponseException;
-import com.lablr.backend.config.SecurityConfiguration;
+import com.lablr.backend.auth.SecurityConfiguration;
 import com.lablr.backend.gmail.ExpiredGmailTokenException;
 import com.lablr.backend.gmail.MissingGmailScopeException;
 import com.lablr.backend.label.NestedChangeException.Rename;

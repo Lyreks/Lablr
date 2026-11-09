@@ -1,6 +1,6 @@
 package com.lablr.backend.auth;
 
-import com.lablr.backend.config.SecurityConfiguration;
+import com.lablr.backend.auth.SecurityConfiguration;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
