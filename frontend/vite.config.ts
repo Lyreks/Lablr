@@ -1,5 +1,4 @@
 import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 
 // Proxy backend paths so both share an origin (Caddy does the same under Docker). The Host header
@@ -7,7 +6,7 @@ import { defineConfig } from "vite";
 const backend = "http://localhost:8080";
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter()],
+  plugins: [reactRouter()],
   resolve: {
     tsconfigPaths: true,
   },
