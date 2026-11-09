@@ -26,11 +26,11 @@ public class GmailClientFactory {
 
 	public Gmail forUser(OAuth2AccessToken token) {
 		if (!token.getScopes().contains(GmailScopes.GMAIL_LABELS)) {
-			throw new MissingGmailScopeException();
+			throw GmailSignInRequiredException.missingScope();
 		}
 		Instant expiresAt = token.getExpiresAt();
 		if (expiresAt != null && expiresAt.isBefore(Instant.now().plus(EXPIRY_MARGIN))) {
-			throw new ExpiredGmailTokenException();
+			throw GmailSignInRequiredException.expired();
 		}
 		// Plain bearer header instead of GoogleCredentials, which try to refresh on a 401. With no
 		// refresh token that throws IllegalStateException and hides Gmail's actual error.

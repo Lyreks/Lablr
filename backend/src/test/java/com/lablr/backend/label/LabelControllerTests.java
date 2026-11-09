@@ -9,8 +9,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponseException;
 import com.lablr.backend.auth.SecurityConfiguration;
-import com.lablr.backend.gmail.ExpiredGmailTokenException;
-import com.lablr.backend.gmail.MissingGmailScopeException;
+import com.lablr.backend.gmail.GmailSignInRequiredException;
 import com.lablr.backend.label.NestedChangeException.Rename;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -308,7 +307,7 @@ class LabelControllerTests {
 
 		@Test
 		void asksToSignInAgainWhenLabelsScopeMissing() throws Exception {
-			given(labelService.list(any())).willThrow(new MissingGmailScopeException());
+			given(labelService.list(any())).willThrow(GmailSignInRequiredException.missingScope());
 
 			mvc.perform(get(LABELS).with(oidcLogin()))
 				.andExpect(status().isForbidden())
@@ -345,7 +344,7 @@ class LabelControllerTests {
 
 		@Test
 		void asksToSignInAgainWhenTokenExpired() throws Exception {
-			given(labelService.list(any())).willThrow(new ExpiredGmailTokenException());
+			given(labelService.list(any())).willThrow(GmailSignInRequiredException.expired());
 
 			mvc.perform(get(LABELS).with(oidcLogin()))
 				.andExpect(status().isUnauthorized())

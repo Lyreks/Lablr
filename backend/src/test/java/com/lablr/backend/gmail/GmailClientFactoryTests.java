@@ -8,6 +8,7 @@ import com.google.api.client.testing.http.MockHttpTransport;
 import com.google.api.services.gmail.GmailScopes;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,8 +22,9 @@ class GmailClientFactoryTests {
 
 	@Test
 	void rejectsTokenWithoutLabelsScope() {
-		assertThatExceptionOfType(MissingGmailScopeException.class)
-			.isThrownBy(() -> factory.forUser(token(Set.of("openid", "email"), Duration.ofHours(1))));
+		assertThatExceptionOfType(GmailSignInRequiredException.class)
+			.isThrownBy(() -> factory.forUser(token(Set.of("openid", "email"), Duration.ofHours(1))))
+			.satisfies((ex) -> assertThat(ex.status()).isEqualTo(HttpStatus.FORBIDDEN));
 	}
 
 	@Test
@@ -32,14 +34,16 @@ class GmailClientFactoryTests {
 
 	@Test
 	void rejectsExpiredToken() {
-		assertThatExceptionOfType(ExpiredGmailTokenException.class)
-			.isThrownBy(() -> factory.forUser(token(LABELS_SCOPE, Duration.ofMinutes(-1))));
+		assertThatExceptionOfType(GmailSignInRequiredException.class)
+			.isThrownBy(() -> factory.forUser(token(LABELS_SCOPE, Duration.ofMinutes(-1))))
+			.satisfies((ex) -> assertThat(ex.status()).isEqualTo(HttpStatus.UNAUTHORIZED));
 	}
 
 	@Test
 	void rejectsTokenAboutToExpire() {
-		assertThatExceptionOfType(ExpiredGmailTokenException.class)
-			.isThrownBy(() -> factory.forUser(token(LABELS_SCOPE, GmailClientFactory.EXPIRY_MARGIN.minusSeconds(10))));
+		assertThatExceptionOfType(GmailSignInRequiredException.class)
+			.isThrownBy(() -> factory.forUser(token(LABELS_SCOPE, GmailClientFactory.EXPIRY_MARGIN.minusSeconds(10))))
+			.satisfies((ex) -> assertThat(ex.status()).isEqualTo(HttpStatus.UNAUTHORIZED));
 	}
 
 	@Test
