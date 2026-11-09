@@ -11,6 +11,7 @@ import com.google.api.client.http.HttpResponseException;
 import com.lablr.backend.config.SecurityConfiguration;
 import com.lablr.backend.gmail.ExpiredGmailTokenException;
 import com.lablr.backend.gmail.MissingGmailScopeException;
+import com.lablr.backend.label.NestedRenameException.Rename;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -362,6 +363,23 @@ class LabelControllerTests {
 					"""))
 				.andExpect(status().isConflict())
 				.andExpect(jsonPath("$.detail").value("Already exists"));
+		}
+
+		@Test
+		void reportsRolledBackRename() throws Exception {
+			given(labelService.update(any(), eq("TestLabel"), any()))
+				.willThrow(new NestedRenameException(new Rename("Work/A", "Home/A"), "Gmail couldn't be reached",
+						List.of(new Rename("Work", "Home")), new IOException("Connection reset")));
+
+			mvc.perform(patch(LABEL).with(oidcLogin()).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+					{ "name": "Home" }
+					"""))
+				.andExpect(status().isBadGateway())
+				.andExpect(jsonPath("$.title").value("Rename partly undone"))
+				.andExpect(jsonPath("$.detail").value(
+						"Couldn't move “Work/A” to “Home/A”: Gmail couldn't be reached. Some changes couldn't be undone. Fix these in Gmail: “Home” (was “Work”)."))
+				.andExpect(jsonPath("$.notRestored[0].from").value("Work"))
+				.andExpect(jsonPath("$.notRestored[0].to").value("Home"));
 		}
 
 		@Test

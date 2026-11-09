@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -167,18 +169,18 @@ class LabelServiceTests {
 					{ "id": "Clients", "name": "Work/Clients" }
 					""");
 			gmail.thenRespondWith(200, """
-					{ "id": "Clients", "name": "Clients" }
-					""");
-			gmail.thenRespondWith(200, """
 					{
 					  "labels": [
 					    { "id": "Work", "name": "Work" },
-					    { "id": "Clients", "name": "Clients" },
+					    { "id": "Clients", "name": "Work/Clients" },
 					    { "id": "Acme", "name": "Work/Clients/Acme" },
 					    { "id": "Invoices", "name": "Work/Clients/Acme/Invoices" },
 					    { "id": "Other", "name": "Work/Clients Old" }
 					  ]
 					}
+					""");
+			gmail.thenRespondWith(200, """
+					{ "id": "Clients", "name": "Clients" }
 					""");
 			gmail.thenRespondWith(200, "{}");
 
@@ -195,6 +197,108 @@ class LabelServiceTests {
 			JSONAssert.assertEquals("""
 					{ "name": "Clients/Acme/Invoices" }
 					""", renames.get(1).body(), true);
+		}
+
+		@Test
+		void changesNothingWhenNestedLabelsNewNameIsTaken() {
+			gmail.respondWith(200, """
+					{ "id": "Clients", "name": "Work/Clients" }
+					""");
+			gmail.thenRespondWith(200, """
+					{
+					  "labels": [
+					    { "id": "Clients", "name": "Work/Clients" },
+					    { "id": "Acme", "name": "Work/Clients/Acme" },
+					    { "id": "OtherAcme", "name": "Clients/Acme" }
+					  ]
+					}
+					""");
+
+			assertThatExceptionOfType(ResponseStatusException.class)
+				.isThrownBy(() -> labelService.update(token, "Clients", new UpdateLabelRequest("Clients", null, null, null)))
+				.satisfies((ex) -> {
+					assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(ex.getReason()).contains("“Clients/Acme”");
+				});
+			assertThat(gmail.requests).extracting(RecordingTransport.Request::method).containsExactly("GET", "GET");
+		}
+
+		@Test
+		void rollsBackWhenNestedRenameFails() throws Exception {
+			respondToRenameWithFailingChild();
+			gmail.thenRespondWith(200, "{}");
+
+			assertThatExceptionOfType(NestedRenameException.class)
+				.isThrownBy(() -> labelService.update(token, "Clients",
+						new UpdateLabelRequest("Clients", null, null, null)))
+				.satisfies((ex) -> {
+					assertThat(ex.getMessage()).isEqualTo(
+							"Couldn't move “Work/Clients/Acme/Invoices” to “Clients/Acme/Invoices”: Gmail had a temporary problem. All changes were undone.");
+					assertThat(ex.notRestored()).isEmpty();
+				});
+
+			List<RecordingTransport.Request> undo = gmail.requests.subList(5, gmail.requests.size());
+			assertThat(undo).extracting((request) -> request.request().getUrl())
+				.containsExactly(LABELS_URL + "/Acme", LABELS_URL + "/Clients");
+			JSONAssert.assertEquals("""
+					{ "name": "Work/Clients/Acme" }
+					""", undo.get(0).body(), true);
+			assertThat(undo.get(1).method()).isEqualTo("PUT");
+			JSONAssert.assertEquals("""
+					{
+					  "id": "Clients",
+					  "name": "Work/Clients",
+					  "labelListVisibility": "labelShow",
+					  "messageListVisibility": "show",
+					  "color": { "textColor": "#000000", "backgroundColor": "#ffffff" }
+					}
+					""", undo.get(1).body(), true);
+		}
+
+		@Test
+		void reportsLabelsThatCouldNotBeRestored() {
+			respondToRenameWithFailingChild();
+			// Gmail stays down, so neither undo works.
+
+			assertThatExceptionOfType(NestedRenameException.class)
+				.isThrownBy(() -> labelService.update(token, "Clients",
+						new UpdateLabelRequest("Clients", null, null, null)))
+				.satisfies((ex) -> {
+					assertThat(ex.notRestored()).containsExactly(
+							new NestedRenameException.Rename("Work/Clients/Acme", "Clients/Acme"),
+							new NestedRenameException.Rename("Work/Clients", "Clients"));
+					assertThat(ex.getMessage()).endsWith(
+							"Some changes couldn't be undone. Fix these in Gmail: “Clients/Acme” (was “Work/Clients/Acme”), “Clients” (was “Work/Clients”).");
+				});
+		}
+
+		// Moving "Work/Clients" to "Clients": the first child moves, the second fails with a 500.
+		private void respondToRenameWithFailingChild() {
+			gmail.respondWith(200, """
+					{
+					  "id": "Clients",
+					  "name": "Work/Clients",
+					  "labelListVisibility": "labelShow",
+					  "messageListVisibility": "show",
+					  "color": { "textColor": "#000000", "backgroundColor": "#ffffff" }
+					}
+					""");
+			gmail.thenRespondWith(200, """
+					{
+					  "labels": [
+					    { "id": "Clients", "name": "Work/Clients" },
+					    { "id": "Acme", "name": "Work/Clients/Acme" },
+					    { "id": "Invoices", "name": "Work/Clients/Acme/Invoices" }
+					  ]
+					}
+					""");
+			gmail.thenRespondWith(200, """
+					{ "id": "Clients", "name": "Clients" }
+					""");
+			gmail.thenRespondWith(200, "{}");
+			gmail.thenRespondWith(500, """
+					{ "error": { "code": 500, "message": "Backend Error" } }
+					""");
 		}
 
 	}

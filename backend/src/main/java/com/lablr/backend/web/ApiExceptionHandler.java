@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.lablr.backend.gmail.ExpiredGmailTokenException;
 import com.lablr.backend.gmail.GmailErrors;
 import com.lablr.backend.gmail.MissingGmailScopeException;
+import com.lablr.backend.label.NestedRenameException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,20 @@ public class ApiExceptionHandler {
 		Level level = (status.value() == 404 || status.value() == 409) ? Level.INFO : Level.WARN;
 		logger.atLevel(level).log("Gmail returned {} for {}: {}", status.value(), describe(request), reason);
 		return ProblemDetail.forStatusAndDetail(status, reason);
+	}
+
+	// Already logged in LabelService
+	@ExceptionHandler(NestedRenameException.class)
+	ProblemDetail handleNestedRename(NestedRenameException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(GmailErrors.status(ex.getCause()), ex.getMessage());
+		if (ex.notRestored().isEmpty()) {
+			problem.setTitle("Rename undone");
+		}
+		else {
+			problem.setTitle("Rename partly undone");
+			problem.setProperty("notRestored", ex.notRestored());
+		}
+		return problem;
 	}
 
 	@ExceptionHandler(MissingGmailScopeException.class)

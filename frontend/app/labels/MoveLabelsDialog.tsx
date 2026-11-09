@@ -95,8 +95,8 @@ export function MoveLabelsDialog({
               <ApiErrorAlert error={progress.error} />
               {progress.done > 0 && (
                 <Alert severity="warning">
-                  {progress.done} of {plan.roots.length} moved before this error. The list shows where
-                  everything is now.
+                  {progress.done} of {plan.roots.length} moved before this error. The rest were left
+                  where they were.
                 </Alert>
               )}
             </>
