@@ -1,5 +1,5 @@
 services:
-  # Single entry point; see Caddyfile.
+  # Entry point (see Caddyfile). Waits until both apps are healthy.
   proxy:
     image: caddy:2.10-alpine
     ports:
@@ -7,8 +7,10 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
 
   backend:
     build: ./backend
@@ -26,3 +28,9 @@ services:
     build: ./frontend
     expose:
       - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
