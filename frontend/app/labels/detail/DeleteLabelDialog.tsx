@@ -23,7 +23,7 @@ type DeleteLabelDialogProps = {
 };
 
 export function DeleteLabelDialog({ label, open, onClose, onDeleted }: DeleteLabelDialogProps) {
-  const deleteLabel = useDeleteLabel(label.id);
+  const deleteLabel = useDeleteLabel();
   const labels = useLabels();
   const [deleteNested, setDeleteNested] = useState(false);
 
@@ -65,7 +65,7 @@ export function DeleteLabelDialog({ label, open, onClose, onDeleted }: DeleteLab
           color="error"
           variant="contained"
           loading={deleteLabel.isPending}
-          onClick={() => deleteLabel.mutate({ deleteNested }, { onSuccess: onDeleted })}
+          onClick={() => deleteLabel.mutate({ id: label.id, deleteNested }, { onSuccess: onDeleted })}
         >
           Delete
         </Button>

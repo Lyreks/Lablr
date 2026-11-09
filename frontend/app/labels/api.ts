@@ -97,13 +97,13 @@ export function useUpdateLabel() {
   });
 }
 
-export function useDeleteLabel(id: string) {
+export function useDeleteLabel() {
   const queryClient = useQueryClient();
   return useMutation({
     // Nested labels move up a level unless deleteNested is set
-    mutationFn: ({ deleteNested = false }: { deleteNested?: boolean } = {}) =>
+    mutationFn: ({ id, deleteNested = false }: { id: string; deleteNested?: boolean }) =>
       apiFetch<void>(`${apiPath(id)}?deleteNested=${deleteNested}`, { method: "DELETE" }),
-    onSuccess: () => {
+    onSuccess: (_data, { id }) => {
       queryClient.removeQueries({ queryKey: labelKeys.detail(id) });
       return queryClient.invalidateQueries({ queryKey: labelKeys.all });
     },
