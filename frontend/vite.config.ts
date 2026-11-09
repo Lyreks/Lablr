@@ -1,9 +1,10 @@
 import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 
-// Proxy backend paths so both share an origin (Caddy does the same under Docker). The Host header
-// is kept, so the OAuth redirect URI points back at this server.
-const backend = "http://localhost:8080";
+// Proxy the backend so everything is same-origin (Caddy does this under Docker).
+// changeOrigin must stay off so the Host header, and the OAuth redirect URI, stay on this server.
+// The string shorthand turns it on.
+const backend = { target: "http://localhost:8080", changeOrigin: false };
 
 export default defineConfig({
   plugins: [reactRouter()],
