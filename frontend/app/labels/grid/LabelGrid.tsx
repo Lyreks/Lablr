@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { Box, Button, FormControlLabel, Stack, Switch, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import {
   DataGrid,
   gridClasses,
@@ -15,6 +15,7 @@ import {
 import { readStored, writeStored } from "../../storage";
 import type { Label, LabelInput } from "../api";
 import { DRAG_FIELD, labelColumns, labelPath } from "./columns";
+import { LabelGridToolbar } from "./LabelGridToolbar";
 import { MoveLabelsDialog } from "./MoveLabelsDialog";
 import { TOP_LEVEL } from "../names";
 import { useLabelDragAndDrop } from "./useLabelDragAndDrop";
@@ -105,27 +106,9 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
   );
 
   return (
-    <Stack spacing={1} {...drag.containerProps}>
-      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-        <Box sx={{ flexGrow: 1 }}>
-          {selected.length > 0 && (
-            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <Typography variant="body2">{selected.length} selected</Typography>
-              <Button variant="contained" size="small" onClick={() => openMove(TOP_LEVEL)}>
-                Move to…
-              </Button>
-              <Button size="small" onClick={() => setRowSelectionModel(NOTHING_SELECTED)}>
-                Clear
-              </Button>
-            </Stack>
-          )}
-        </Box>
-        <FormControlLabel
-          label="Show system labels"
-          control={<Switch checked={showSystem} onChange={(_, show) => setShowSystem(show)} />}
-        />
-      </Stack>
+    <Box {...drag.containerProps}>
       <DataGrid
+        label="Labels"
         rows={labels}
         columns={columns}
         autoHeight
@@ -152,8 +135,21 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         isRowSelectable={({ row }) => row.type === "user"}
         rowSelectionModel={rowSelectionModel}
         onRowSelectionModelChange={setRowSelectionModel}
+        // The toolbar shows the count, next to what you can do with the selection
+        hideFooterSelectedRowCount
         getRowClassName={({ row }) => drag.rowClassName(row)}
-        slotProps={{ row: drag.rowProps }}
+        showToolbar
+        slots={{ toolbar: LabelGridToolbar }}
+        slotProps={{
+          row: drag.rowProps,
+          toolbar: {
+            selectedCount: selected.length,
+            onMove: () => openMove(TOP_LEVEL),
+            onClearSelection: () => setRowSelectionModel(NOTHING_SELECTED),
+            showSystem,
+            onShowSystemChange: setShowSystem,
+          },
+        }}
         sx={[
           drag.sx,
           {
@@ -172,6 +168,6 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
         onClose={() => setMoveRequest((request) => ({ ...request, open: false }))}
         onMoved={() => setRowSelectionModel(NOTHING_SELECTED)}
       />
-    </Stack>
+    </Box>
   );
 }
