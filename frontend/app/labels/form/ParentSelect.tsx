@@ -1,6 +1,6 @@
 import { MenuItem, TextField, type TextFieldProps } from "@mui/material";
 
-import { compareNames, isSameOrNestedUnder, TOP_LEVEL } from "./names";
+import { compareNames, isSameOrNestedUnder, TOP_LEVEL } from "../names";
 
 type ParentSelectProps = Omit<TextFieldProps, "select" | "value" | "onChange" | "children"> & {
   value: string;

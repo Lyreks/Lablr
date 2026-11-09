@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 
 import { AuthGate } from "../auth/AuthGate";
-import { Logo } from "../Logo";
+import { Logo } from "../components/Logo";
 import { useSignOut } from "../auth/api";
 
 type Section = { text: string; to?: string; soon?: string };

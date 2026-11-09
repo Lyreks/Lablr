@@ -24,14 +24,13 @@ import {
   type GridSortModel,
 } from "@mui/x-data-grid";
 
-import { readStored, writeStored } from "../storage";
-import type { Label, LabelInput } from "./api";
-import { DragIndicatorIcon } from "./icons";
-import { InfoTooltip } from "./InfoTooltip";
-import { LabelChip } from "./LabelChip";
-import { EditableLabelChip } from "./EditableLabelChip";
+import { readStored, writeStored } from "../../storage";
+import type { Label, LabelInput } from "../api";
+import { DragIndicatorIcon } from "../../components/icons";
+import { InfoTooltip } from "../../components/InfoTooltip";
+import { LabelChip } from "../chip/LabelChip";
 import { MoveLabelsDialog } from "./MoveLabelsDialog";
-import { compareNames, labelTree, TOP_LEVEL } from "./names";
+import { compareNames, labelTree, TOP_LEVEL } from "../names";
 import { TreeGuides } from "./TreeGuides";
 import { useLabelDragAndDrop } from "./useLabelDragAndDrop";
 import {
@@ -40,7 +39,7 @@ import {
   optionText,
   sidebarRestrictionLookup,
   sidebarRestrictionText,
-} from "./visibility";
+} from "../visibility";
 
 const PAGE_SIZE_KEY = "lablr.labels.pageSize";
 const SHOW_SYSTEM_KEY = "lablr.labels.showSystem";
@@ -232,7 +231,7 @@ export function LabelGrid({ labels, onChange }: LabelGridProps) {
               {row.type === "user" ? (
                 // Source for the drag preview (see showTagWhileDragging).
                 <Box data-drag-preview>
-                  <EditableLabelChip {...chip} onColorChange={(color) => onChange(row, { color })} />
+                  <LabelChip {...chip} onColorChange={(color) => onChange(row, { color })} />
                 </Box>
               ) : (
                 <LabelChip {...chip} />

@@ -4,8 +4,8 @@ import { Button, CircularProgress, Stack, Typography } from "@mui/material";
 import type { Route } from "./+types/labels";
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
 import { type Label, type LabelInput, useLabels, useUpdateLabel } from "../labels/api";
-import { CreateLabelDialog } from "../labels/CreateLabelDialog";
-import { LabelGrid } from "../labels/LabelGrid";
+import { CreateLabelDialog } from "../labels/form/CreateLabelDialog";
+import { LabelGrid } from "../labels/grid/LabelGrid";
 
 export const meta: Route.MetaFunction = () => [{ title: "Labels · Lablr" }];
 

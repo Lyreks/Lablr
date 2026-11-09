@@ -2,17 +2,16 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link } from "react-router";
 import { Link as MuiLink, MenuItem, Stack, TextField } from "@mui/material";
 
-import { type LabelInput, useLabels } from "./api";
-import { LabelChip } from "./LabelChip";
-import { EditableLabelChip } from "./EditableLabelChip";
-import { joinName, splitName, userLabelNames } from "./names";
+import { type LabelInput, useLabels } from "../api";
+import { LabelChip } from "../chip/LabelChip";
+import { joinName, splitName, userLabelNames } from "../names";
 import { ParentSelect } from "./ParentSelect";
 import {
   sidebarRestrictionLookup,
   sidebarRestrictionText,
   labelListVisibility,
   messageListVisibility,
-} from "./visibility";
+} from "../visibility";
 
 export const newLabel: LabelInput = {
   name: "",
@@ -104,13 +103,11 @@ export function LabelForm({
               inputLabel: { shrink: true },
               input: {
                 readOnly: true,
-                startAdornment: disabled ? (
-                  <LabelChip name={previewName} color={field.value} />
-                ) : (
-                  <EditableLabelChip
+                startAdornment: (
+                  <LabelChip
                     name={previewName}
                     color={field.value}
-                    onColorChange={field.onChange}
+                    onColorChange={disabled ? undefined : field.onChange}
                   />
                 ),
               },

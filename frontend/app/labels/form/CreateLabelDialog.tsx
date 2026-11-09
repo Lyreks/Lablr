@@ -1,9 +1,9 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from "@mui/material";
 
-import { ApiErrorAlert } from "../api/ApiErrorAlert";
-import { useCreateLabel } from "./api";
+import { ApiErrorAlert } from "../../api/ApiErrorAlert";
+import { useCreateLabel } from "../api";
 import { LabelForm, newLabel } from "./LabelForm";
-import { joinName } from "./names";
+import { joinName } from "../names";
 
 const FORM_ID = "create-label-form";
 

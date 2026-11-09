@@ -3,7 +3,7 @@ import { Box, Button, CircularProgress, Container, Stack, Typography } from "@mu
 
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
 import { ApiError, loginUrl } from "../api/client";
-import { Logo } from "../Logo";
+import { Logo } from "../components/Logo";
 import { type Me, useMe } from "./api";
 
 export function AuthGate({ children }: { children: (me: Me) => ReactNode }) {

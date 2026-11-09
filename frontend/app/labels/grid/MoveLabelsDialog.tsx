@@ -11,10 +11,10 @@ import {
   Typography,
 } from "@mui/material";
 
-import { ApiErrorAlert } from "../api/ApiErrorAlert";
-import { type Label, useUpdateLabel } from "./api";
-import { canCarryOut, planMove, TOP_LEVEL, userLabelNames } from "./names";
-import { ParentSelect } from "./ParentSelect";
+import { ApiErrorAlert } from "../../api/ApiErrorAlert";
+import { type Label, useUpdateLabel } from "../api";
+import { canCarryOut, planMove, TOP_LEVEL, userLabelNames } from "../names";
+import { ParentSelect } from "../form/ParentSelect";
 
 type MoveLabelsDialogProps = {
   open: boolean;

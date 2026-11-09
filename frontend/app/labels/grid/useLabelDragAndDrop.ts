@@ -1,8 +1,8 @@
 import { type DragEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { gridClasses } from "@mui/x-data-grid";
 
-import type { Label } from "./api";
-import { canCarryOut, type MovePlan, planMove, splitName, TOP_LEVEL, userLabelNames } from "./names";
+import type { Label } from "../api";
+import { canCarryOut, type MovePlan, planMove, splitName, TOP_LEVEL, userLabelNames } from "../names";
 
 type DropMark = "inside" | "above" | "below";
 

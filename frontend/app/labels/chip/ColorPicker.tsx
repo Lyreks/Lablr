@@ -1,7 +1,7 @@
-import { type ReactNode, useState } from "react";
-import { Box, Button, ButtonBase, Popover, Stack, Typography } from "@mui/material";
+import type { ReactNode } from "react";
+import { Box, Button, ButtonBase, Stack, Typography } from "@mui/material";
 
-import { type LabelColor, useLabels } from "./api";
+import { type LabelColor, useLabels } from "../api";
 import {
   contrastingTextColor,
   customColors,
@@ -9,47 +9,16 @@ import {
   isPreset,
   presetColors,
   sameColor,
-} from "./colors";
-import { LabelChip } from "./LabelChip";
+} from "../colors";
 import { PaletteSelect } from "./PaletteSelect";
 
-type EditableLabelChipProps = {
-  name: string;
-  color: LabelColor | null;
-  to?: string;
-  title?: string;
-  // null removes the color.
-  onColorChange: (color: LabelColor | null) => void;
-};
-
-export function EditableLabelChip({ name, color, to, title, onColorChange }: EditableLabelChipProps) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-
-  return (
-    <>
-      <LabelChip name={name} color={color} to={to} title={title} onColorClick={setAnchor} />
-      <Popover
-        open={anchor !== null}
-        anchorEl={anchor}
-        onClose={() => setAnchor(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        // Don't let the grid handle keys typed in here
-        onKeyDown={(event) => event.stopPropagation()}
-        slotProps={{ paper: { role: "dialog", "aria-label": `Color of ${name}` } }}
-      >
-        <ColorPicker name={name} value={color} onChange={onColorChange} />
-      </Popover>
-    </>
-  );
-}
-
 type ColorPickerProps = {
-  name: string;
   value: LabelColor | null;
+  // null removes the color.
   onChange: (color: LabelColor | null) => void;
 };
 
-function ColorPicker({ name, value, onChange }: ColorPickerProps) {
+export function ColorPicker({ value, onChange }: ColorPickerProps) {
   const labels = useLabels();
   const custom = customColors(labels.data ?? []);
   if (value && !isPreset(value) && !custom.some((color) => sameColor(color, value))) {
@@ -57,11 +26,7 @@ function ColorPicker({ name, value, onChange }: ColorPickerProps) {
   }
 
   return (
-    <Stack spacing={2} sx={{ p: 2, width: 288 }}>
-      <Box>
-        <LabelChip name={name} color={value} />
-      </Box>
-
+    <Stack spacing={2}>
       <Section title="Standard Presets">
         <SwatchGrid colors={presetColors} selected={value} onPick={onChange} />
       </Section>

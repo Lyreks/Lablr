@@ -1,6 +1,6 @@
 import { Box, MenuItem, TextField } from "@mui/material";
 
-import { paletteColors } from "./colors";
+import { paletteColors } from "../colors";
 
 const NONE = "";
 

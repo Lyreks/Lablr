@@ -19,8 +19,8 @@ import type { Route } from "./+types/label";
 import { ApiErrorAlert } from "../api/ApiErrorAlert";
 import { type Label, useDeleteLabel, useLabel, useUpdateLabel } from "../labels/api";
 import { sameColor } from "../labels/colors";
-import { CreateLabelDialog } from "../labels/CreateLabelDialog";
-import { LabelForm } from "../labels/LabelForm";
+import { CreateLabelDialog } from "../labels/form/CreateLabelDialog";
+import { LabelForm } from "../labels/form/LabelForm";
 
 const FORM_ID = "edit-label-form";
 

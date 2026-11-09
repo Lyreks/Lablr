@@ -25,11 +25,15 @@ Vite proxies `/api`, `/oauth2`, `/login/oauth2` and `/logout` to the backend, so
 
 ```
 app/
-  routes/   pages: /labels (grid), /labels/:labelId (detail/edit)
-  labels/   grid, form, dialogs, query hooks (api.ts), and the pure
-            naming/move/visibility/color logic, which has the tests
-  api/      fetch wrapper and error alert
-  auth/     current user and the sign-in gate
+  routes/        pages: /labels (grid), /labels/:labelId (detail/edit)
+  labels/        query hooks (api.ts) and the pure naming/move/visibility/color
+                 logic, which has the tests
+    grid/        Data Grid, tree lines, drag-and-drop, Move dialog
+    form/        label form, parent picker, create dialog
+    chip/        label chip and its color picker
+  components/    shared bits: logo, info tooltip, icons
+  api/           fetch wrapper and error alert
+  auth/          current user and the sign-in gate
 ```
 
 ## Errors
