@@ -19,7 +19,14 @@ export function ParentSelect({ value, onChange, names, placing, ...field }: Pare
   options.sort(compareNames);
 
   return (
-    <TextField {...field} select value={value} onChange={(event) => onChange(event.target.value)}>
+    <TextField
+      {...field}
+      select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      // TOP_LEVEL is "", which a select otherwise shows as blank
+      slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
+    >
       <MenuItem value={TOP_LEVEL}>Nothing (top level)</MenuItem>
       {options.map((name) => (
         <MenuItem key={name} value={name}>
